@@ -1,0 +1,3 @@
+# Keep LF line endings for text files, also on Windows.
+# Linux containers (Docker) fail on Windows CRLF endings, e.g. in shell scripts.
+* text=auto eol=lf
