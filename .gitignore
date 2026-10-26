@@ -1,0 +1,60 @@
+# .gitignore for the NbS mini-dashboard
+# Rule of thumb: commit code and small config. Never commit secrets,
+# generated files, or data that is too big for Git or can be rebuilt.
+#
+# Pattern cheat sheet:
+#   name     matches a file or folder with that name anywhere in the repo
+#   name/    matches folders only
+#   /name    matches only at the repo root
+#   *.ext    wildcard
+#   !name    re-includes something an earlier rule ignored
+
+# --- Python ----------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Virtual environments --------------------------------------------
+.venv/
+venv/
+env/
+
+# --- Django ----------------------------------------------------------
+# Local SQLite fallback, collected static files, user uploads, logs
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+/media/
+*.log
+
+# --- Editors and operating system ------------------------------------
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# --- Claude Code -----------------------------------------------------
+# settings.json is shared and committed; settings.local.json is per-machine
+.claude/settings.local.json
+
+# --- Secrets ---------------------------------------------------------
+# Real passwords and SECRET_KEY live in .env (never committed).
+# .env.example has the same variable names with fake values (committed).
+.env
+.env.*
+!.env.example
+
+# --- Data ------------------------------------------------------------
+# PostgreSQL data folder (if Docker ever stores it inside the project)
+pgdata/
+# Database backups made with pg_dump. *.sql is NOT ignored on purpose:
+# our own SQL query files (Milestone 3) belong in Git.
+*.dump
+*.backup
+# Big GIS downloads go to data/raw/ (ignored);
+# small files we create go to data/sample/ (committed)
+data/raw/
