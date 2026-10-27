@@ -84,7 +84,7 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 1 — Setup (started 2026-10-26)
+- **Milestone:** 1 — Setup: **done** (2026-10-26 → 2026-10-27). Milestone 2 not started
 - **Done so far:**
   - Created `CLAUDE.md`, `.claude/settings.json`, `LEARNING.md`
   - Added the **Git & GitHub** rules to `CLAUDE.md`
@@ -94,7 +94,7 @@ city where Eurac is based as an example in this project.
   - 1.2 `.gitignore` (Python, venv, Django, secrets `.env*` except `.env.example`,
     `pgdata/`, `*.dump`, `*.backup`, `data/raw/`) and `.gitattributes` (LF line endings)
   - 1.3 Public GitHub repo created and set as `origin`:
-    https://github.com/alireza-soleiman/nbs-mini-dashboard (**nothing pushed yet**)
+    https://github.com/alireza-soleiman/nbs-mini-dashboard
   - 1.4 PostGIS in Docker via `compose.yaml` (service `db`, image `postgis/postgis:17-3.5`,
     named volume `nbs_pgdata`, healthcheck). Secrets in `.env` (ignored, random password),
     template in `.env.example`. Reachable at `127.0.0.1:5433`, database/user `nbs`.
@@ -109,6 +109,10 @@ city where Eurac is based as an example in this project.
     vars, uses the `postgis` backend, has `django.contrib.gis`, `TIME_ZONE = 'Europe/Rome'`
   - 1.7 Verified: `manage.py check` OK, `migrate` OK, Merano transformed from EPSG:4326 to
     EPSG:25832 (665194, 5170903), welcome page HTTP 200 at http://localhost:8000
+  - 1.8 (part 1) Commit email for **this repo** set to the GitHub noreply address
+    `153937783+alireza-soleiman@users.noreply.github.com` (`git config --local`; global
+    stays Gmail). All 6 commits rewritten with it before the first push. History scanned
+    for secrets: clean. **First push 2026-10-27**: `main` tracks `origin/main`
 - **Tools checked (2026-10-26):** Git 2.56 (user name + email set), GitHub CLI 2.103 logged
   in as `alireza-soleiman` (HTTPS, `repo` scope), Git Credential Manager handles pushes.
   Docker client 29.2, engine 29.9. **Docker Desktop does not auto-start**: start it before
@@ -120,7 +124,8 @@ city where Eurac is based as an example in this project.
   + `web` service · 1.6 Django project on PostGIS, secrets from env vars · 1.7 verify
   GeoDjango · 1.8 push (ask first), quiz, `LEARNING.md`
 - **Data folders:** `data/raw/` = big downloads (ignored), `data/sample/` = small files (committed)
-- **Next step:** 1.8 — first push (needs my OK), quiz, write Milestone 1 in `LEARNING.md`
-- **Open questions / blockers:**
-  - before the first push: commits use my personal Gmail as author email, which becomes
-    public on GitHub. Keep it, or switch to the GitHub `noreply` address?
+  - 1.8 (part 2) Quiz answered; Milestone 1 written in `LEARNING.md`. Weak spots to
+    revisit: Docker networking (`localhost` inside a container), why `.env` is in
+    `.dockerignore`
+- **Next step:** Milestone 2 — Leaflet only. **Waiting for my go-ahead**
+- **Open questions / blockers:** none
