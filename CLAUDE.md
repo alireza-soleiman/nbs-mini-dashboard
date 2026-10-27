@@ -111,16 +111,22 @@ city where Eurac is based as an example in this project.
     `Count('nbs')` makes Django `GROUP BY id, <geom>, <area>`: fine for 116 rows).
     `@api_view` `nbs_types` → `/api/nbs-types/` (`value`, `label`, `count` for all 9
     types). 116 features, 328 KB, 1 query, ~250 ms
-  - **Found:** Aldino/Aldein has an extra 2.139 km² part (64.98 instead of 62.84 km²)
-    → I changed its Geom in the admin at 10:31 (LogEntry "Changed Geom"), probably by
-    clicking on the MultiPolygon map widget. Raw ISTAT feature is fine (1 ring).
-    Fix = re-run `import_municipalities`; also consider making municipality
-    geometries read-only in the admin
-  - 5.5 done: `catalog/tests.py` (`APITestCase`, 10 tests: GeoJSON + lon/lat round
-    trip, `assertNumQueries(1)`, municipality from location, type/municipality/near
-    filters, 400s, municipality detail by ISTAT code + area, nbs-types). Run:
-    `docker compose exec web python manage.py test catalog` → 10 OK (test DB `test_nbs`)
-- **Next step:** fix Aldino (my decision), then 5.6 — recap, quiz, `LEARNING.md`, push
+  - **Found and fixed:** Aldino/Aldein had an extra 2.139 km² part (64.98 instead of
+    62.84 km²) because I changed its Geom in the admin at 10:31 (LogEntry "Changed
+    Geom", clicks on the MultiPolygon widget draw new parts). Restored by re-running
+    `import_municipalities` (province 7,399.87 km² again; NbS links kept, because
+    `update_or_create` keeps the ids)
+  - **Admin lock:** `MunicipalityAdmin` uses `ReadOnlyOSMWidget`
+    (`catalog/templates/catalog/readonly_osm.html` switches off the OpenLayers draw +
+    modify tools) and sets `field.disabled = True` for `geom` in
+    `formfield_for_dbfield` (server ignores posted geometry; the real protection);
+    `has_add_permission` → False. Names stay editable
+  - 5.5 done: `catalog/tests.py`: `CatalogApiTests` (10: GeoJSON + lon/lat round trip,
+    `assertNumQueries(1)`, municipality from location, filters, 400s, municipality
+    detail + area, nbs-types) + `MunicipalityAdminTests` (3: map without tools, posted
+    geometry ignored, add → 403). Run: `docker compose exec web python manage.py test
+    catalog` → 13 OK. Checked the lock test **fails** without `disabled` (mock patch)
+- **Next step:** 5.6 — recap + quiz (asked), then `LEARNING.md`, push (ask first)
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is

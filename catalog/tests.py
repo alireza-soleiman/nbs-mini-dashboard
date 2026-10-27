@@ -6,7 +6,9 @@ Django creates a separate, empty test database (test_nbs) and deletes it afterwa
 so these tests never touch the real data.
 """
 
+from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import MultiPolygon, Point, Polygon
+from django.test import TestCase
 from rest_framework.test import APITestCase
 
 from .models import Municipality, NbS
@@ -92,3 +94,39 @@ class CatalogApiTests(APITestCase):
         data = self.client.get('/api/nbs-types/').json()
         self.assertEqual(len(data), len(NbS.Type.choices))
         self.assertIn({'value': 'green_roof', 'label': 'Green roof', 'count': 1}, data)
+
+
+class MunicipalityAdminTests(TestCase):
+    """Official boundaries must not change through the admin (see the Aldino accident)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        box = Polygon.from_bbox((11.10, 46.63, 11.22, 46.70))
+        cls.town = Municipality.objects.create(
+            istat_code='999001', name='Test town', geom=MultiPolygon(box, srid=4326),
+        )
+        cls.admin_user = get_user_model().objects.create_superuser('test-admin', 'a@example.com', 'x')
+
+    def setUp(self):
+        self.client.force_login(self.admin_user)
+        self.url = f'/admin/catalog/municipality/{self.town.pk}/change/'
+
+    def test_change_page_shows_a_map_without_editing_tools(self):
+        html = self.client.get(self.url).content.decode()
+        self.assertIn('interactions.draw.setActive(false)', html)
+        self.assertNotIn('Delete all Features', html)
+
+    def test_posted_geometry_is_ignored_but_name_can_change(self):
+        original = Municipality.objects.get(pk=self.town.pk).geom
+        other_shape = Polygon.from_bbox((11.0, 46.0, 11.01, 46.01))
+        response = self.client.post(self.url, {
+            'istat_code': '999001', 'name': 'Renamed town', 'name_alt': '',
+            'geom': MultiPolygon(other_shape, srid=4326).geojson, '_save': 'Save',
+        })
+        self.assertEqual(response.status_code, 302)  # saved, redirected to the list
+        town = Municipality.objects.get(pk=self.town.pk)
+        self.assertEqual(town.name, 'Renamed town')
+        self.assertTrue(town.geom.equals_exact(original, tolerance=0.001))
+
+    def test_municipalities_cannot_be_added_by_hand(self):
+        self.assertEqual(self.client.get('/admin/catalog/municipality/add/').status_code, 403)

@@ -1,0 +1,12 @@
+{% extends "gis/openlayers-osm.html" %}
+{% comment %}
+  Django's OSM map widget, but read-only: the map still shows the geometry,
+  the draw and modify tools are switched off once the widget exists.
+  (The real protection is server-side: the form field is disabled.)
+{% endcomment %}
+{% block options %}{{ block.super }}
+document.addEventListener('DOMContentLoaded', function () {
+    {{ module }}.interactions.draw.setActive(false);
+    {{ module }}.interactions.modify.setActive(false);
+});
+{% endblock %}
