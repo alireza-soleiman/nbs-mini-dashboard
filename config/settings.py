@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_gis',
     # Our apps
-    'catalog',
+    'catalog',    # data: models, import commands, API
+    'dashboard',  # the web page: map, filters, ranking
 ]
 
 MIDDLEWARE = [
