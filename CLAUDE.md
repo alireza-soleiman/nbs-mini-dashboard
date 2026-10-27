@@ -84,7 +84,8 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 2 — Leaflet only (started 2026-10-27). Milestone 1 done (2026-10-26 → 27)
+- **Milestone:** 2 — Leaflet only: **done** (2026-10-27). Milestone 3 not started.
+  Milestone 1 done (2026-10-26 → 27)
 - **Milestone 2 plan:** 2.1 Leaflet map + OSM tiles + Merano marker · 2.2 download ISTAT
   boundaries to `data/raw/` (ask first) + inspect with `ogrinfo` · 2.3 `ogr2ogr` → South
   Tyrol only, EPSG:4326 GeoJSON in `frontend/data/` · 2.4 draw municipalities (style,
@@ -106,12 +107,19 @@ city where Eurac is based as an example in this project.
   - 2.4 done: `map.js` loads the GeoJSON with `fetch`, `L.geoJSON` with a style function
     (Merano highlighted), sticky tooltip, popup, hover highlight + `resetStyle`,
     `fitBounds`, ISTAT attribution. Checked in the browser
+  - Click rectangle fixed: it was the browser focus outline on the clicked SVG path →
+    `.leaflet-interactive:focus { outline: none; }` in `map.css`
+  - 2.5 done: quiz answered, Milestone 2 written in `LEARNING.md`
   - Tip for browser checks: Windows display scaling is 125 %, so screenshot pixels =
     CSS pixels × 1.25
-- **Next step:** 2.5 — Milestone 2 quiz, `LEARNING.md`, push (ask first)
+- **Next step:** push Milestone 2 (ask first), then Milestone 3 — PostGIS in SQL.
+  **Waiting for my go-ahead**
 - **Open questions / blockers:** none
-- **Weak spots to revisit** (from the Milestone 1 quiz): Docker networking (`localhost`
-  inside a container), why `.env` is in `.dockerignore`
+- **Weak spots to revisit:**
+  - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
+    in `.dockerignore`
+  - Milestone 2 quiz: an EPSG code is a coordinate system (units/projection), **not**
+    an area. Practise this in Milestone 3 (load data in metres, compare with degrees)
 
 ### Environment and conventions
 

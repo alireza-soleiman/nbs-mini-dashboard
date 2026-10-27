@@ -109,7 +109,92 @@ can talk to it, both running in Docker.
 
 ## Milestone 2 — Leaflet only (static GeoJSON map)
 
-_Not started yet._
+_Done: 2026-10-27._
+
+### The big picture
+
+I built the **top layer alone**: a web page with a Leaflet map that shows the 116
+municipalities of South Tyrol. Instead of an API, the data comes from a static GeoJSON
+file. In Milestone 6 the same `fetch()` will ask Django instead.
+
+Data flow: ISTAT zip (all of Italy, metres) → `ogr2ogr` script → small GeoJSON
+(South Tyrol, degrees) → `fetch` → `L.geoJSON` → polygons on the map.
+
+### Key concepts
+
+**Leaflet**
+- `L.map('map')` puts a map into `<div id="map">`. That div **must have a height**, or
+  the map is invisible (no error message!).
+- The background is made of **tiles**: 256×256 px images, URL `{z}/{x}/{y}` = zoom,
+  column, row. Each zoom level has 4× more tiles.
+- OpenStreetMap tiles need the attribution "© OpenStreetMap contributors". Data
+  sources (ISTAT) get credited too, with the layer's `attribution` option.
+- `integrity="sha256-…"` on the CDN links: the browser refuses Leaflet if the file
+  was changed.
+- `L.geoJSON(data, { style, onEachFeature })`:
+  - `style` can be a **function** of the feature → data-driven colours (Milestone 7).
+  - `onEachFeature` attaches a tooltip (hover), popup (click) and events.
+  - `setStyle()` on hover, `resetStyle()` on mouse-out (asks the style function again).
+  - `fitBounds(layer.getBounds())` zooms to show all features.
+- `fetch()` only works when the page comes from a web server (`http://`), not from
+  `file://`. Python's `http.server` is enough for a static page.
+
+**Coordinate systems (CRS)**
+- An EPSG code says **how numbers become places** (units, origin, projection). It is
+  not about which area the data covers. Cutting Italy down to South Tyrol was done by
+  `WHERE COD_PROV = 21`; changing the CRS was a separate step (`-t_srs`).
+- **EPSG:32632** (UTM 32N) and **EPSG:25832** = metres → good for area, distance,
+  buffers. **EPSG:4326** = longitude/latitude degrees → what GeoJSON and Leaflet expect.
+  (Leaflet itself draws in Web Mercator, EPSG:3857, but I give it degrees.)
+- **Coordinate order:** PostGIS and GeoJSON = `[lng, lat]` (x, y). Leaflet =
+  `[lat, lng]`. `L.geoJSON` swaps them **automatically**. I only swap by hand when
+  I type coordinates myself, like `MERANO = [46.6713, 11.1597]`.
+
+**GIS data**
+- A **shapefile** is several files: `.shp` (shapes), `.dbf` (attributes), `.shx`
+  (index), `.prj` (CRS).
+- **GeoJSON** structure: `FeatureCollection` → `features[]` → each `Feature` has
+  `properties` (attributes) and `geometry` (`type` + `coordinates`). A `Polygon` is a
+  list of rings (outer boundary, then holes); each ring is closed (first point = last).
+- GDAL tools (in the `web` container): `ogrinfo -so` = summary (CRS, extent, count,
+  fields); `ogr2ogr` = convert / filter / reproject. `/vsizip/` reads inside a zip.
+- `COORDINATE_PRECISION=5` = about 1 m. More decimals only make the file bigger.
+
+**Raw data vs. display data**
+- The raw zip (10 MB, all of Italy) stays in `data/raw/`, outside Git: it is big,
+  binary, and anyone can download it again (URL + SHA256 are in the script).
+- In Git: the **script** (the recipe) and the small **GeoJSON** (the product). The
+  script makes the result **reproducible**: delete the GeoJSON, run the script, get
+  the same file.
+
+### Useful commands
+
+| Command | What it does |
+|---|---|
+| `python -m http.server 8080 --bind 127.0.0.1 --directory frontend` | serve the map at http://localhost:8080 |
+| `docker compose exec web ogrinfo -ro -so <file> <layer>` | summary of a GIS layer |
+| `docker compose exec web sh scripts/build_municipalities_geojson.sh` | rebuild the GeoJSON from the ISTAT zip |
+| `docker compose exec web gdalsrsinfo -e <file>` | show the EPSG code of a file |
+
+### Mistakes and corrections
+
+- **Quiz 1:** I thought EPSG:32632 meant "all of Italy" and EPSG:4326 "only South
+  Tyrol". Wrong: EPSG codes are coordinate systems (metres vs. degrees). Leaflet needs
+  4326 (degrees); I keep a metre-based CRS (32632/25832) for calculations in metres.
+- **Quiz 2:** Right about the order (PostGIS lng first, Leaflet lat first). Missing
+  part: `L.geoJSON` does the swap for GeoJSON data, so I never swap those by hand.
+- **Quiz 3:** Right that we keep only what we need. Also important: the raw file can
+  be downloaded again, and the script makes the GeoJSON reproducible.
+- After clicking a municipality, the browser drew a **rectangle** (focus outline)
+  around it. Fix in CSS: `.leaflet-interactive:focus { outline: none; }`. Safe here,
+  because the polygons can't be reached with the keyboard anyway.
+- In Git Bash, paths that start with `/` (like `/vsizip/...`) get changed into Windows
+  paths. `MSYS_NO_PATHCONV=1` turns that off.
+
+### Questions I still have
+
+- How do I colour polygons by a number (e.g. a vulnerability score)? → Milestone 7.
+- How will the map get its data from Django instead of a file? → Milestones 5–6.
 
 ## Milestone 3 — PostGIS in SQL (spatial queries, projections)
 
