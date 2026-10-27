@@ -377,7 +377,8 @@ path.leaflet-interactive:focus { outline: none; }
   .sidebar.is-open { transform: translateY(0); }
   .sheet-handle {
     display: block; flex: none; width: 100%; padding: 0.55rem 0 0.35rem;
-    border: 0; background: none; cursor: pointer;
+    border: 0; background: var(--bg); cursor: pointer;
+    position: sticky; top: 0; z-index: 2;  /* stays visible while the sheet scrolls */
   }
   .sheet-handle span[aria-hidden] {
     display: block; width: 42px; height: 5px; margin: 0 auto;

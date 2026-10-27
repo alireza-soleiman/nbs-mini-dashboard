@@ -196,10 +196,19 @@ function showFilterNote(typesOn, all) {
 function fitToResults() {
   const selected = state.municipalities.get(state.municipality);
   if (selected) {
-    map.flyToBounds(selected.layer.getBounds(), { padding: [20, 20], duration: 0.8 });
+    map.flyToBounds(selected.layer.getBounds(), { ...mapPadding(20), duration: 0.8 });
   } else if (markerLayer.getLayers().length) {
-    map.flyToBounds(markerLayer.getBounds(), { padding: [50, 50], maxZoom: 15, duration: 0.8 });
+    map.flyToBounds(markerLayer.getBounds(), { ...mapPadding(50), maxZoom: 15, duration: 0.8 });
   }
+}
+
+const isPhone = () => window.matchMedia('(max-width: 800px)').matches;
+
+/** Padding for flying the map. On phones an open sheet covers the lower part of the map,
+    so the results must land in the strip above it. */
+function mapPadding(space) {
+  const sheet = isPhone() && el.sidebar.classList.contains('is-open') ? el.sidebar.offsetHeight : 0;
+  return { paddingTopLeft: [space, space], paddingBottomRight: [space, space + sheet] };
 }
 
 // --- Priorities: the browser ranks (no server call) ---------------------------
@@ -340,6 +349,7 @@ function markerIcon(row, selected) {
 /** Click on a marker, shape or list entry: fly to the NbS and open its popup. */
 function selectNbs(id) {
   const { marker, shape } = nbsLayers.get(id);
+  if (isPhone()) setSheet(false); // on phones: close the sheet, so the map is visible
   setSelected(id);
   let opened = false;
   const open = () => { if (!opened) { opened = true; marker.openPopup(); } };
@@ -452,10 +462,14 @@ function setupPanels() {
   el.layout.addEventListener('transitionend', (event) => {
     if (event.target === el.layout) map.invalidateSize();
   });
-  el.sheetHandle.addEventListener('click', () => {
-    const open = el.sidebar.classList.toggle('is-open');
-    el.sheetHandle.setAttribute('aria-expanded', String(open));
-  });
+  el.sheetHandle.addEventListener('click', () => setSheet(!el.sidebar.classList.contains('is-open')));
+}
+
+/** Phones: slide the bottom sheet up (open) or down (closed). */
+function setSheet(open) {
+  el.sidebar.classList.toggle('is-open', open);
+  el.sheetHandle.setAttribute('aria-expanded', String(open));
+  if (!open) el.sidebar.scrollTop = 0; // the closed sheet shows its top: handle + summary
 }
 
 function setStatus(text, isError = false) {
