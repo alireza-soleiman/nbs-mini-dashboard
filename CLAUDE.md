@@ -99,20 +99,28 @@ city where Eurac is based as an example in this project.
     named volume `nbs_pgdata`, healthcheck). Secrets in `.env` (ignored, random password),
     template in `.env.example`. Reachable at `127.0.0.1:5433`, database/user `nbs`.
     Verified: PostgreSQL 17.5, PostGIS 3.5.2, first `ST_MakePoint` query works
+  - **Decision (2026-10-27): Django runs in Docker too** (no GDAL install on Windows)
+  - 1.5 `Dockerfile` (`python:3.12-slim-trixie` + Debian `gdal-bin`), `requirements.txt`
+    (Django 5.2 LTS, psycopg 3), `.dockerignore`, `web` service in `compose.yaml`
+    (code bind-mounted at `/app`, waits for a healthy `db`, port `127.0.0.1:8000`).
+    In the image: Django 5.2.18, GDAL 3.10.3, GEOS 3.13.1
+  - 1.6 Django project `config` (`manage.py` in the repo root). `settings.py` reads
+    `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS` and `POSTGRES_*` from env
+    vars, uses the `postgis` backend, has `django.contrib.gis`, `TIME_ZONE = 'Europe/Rome'`
+  - 1.7 Verified: `manage.py check` OK, `migrate` OK, Merano transformed from EPSG:4326 to
+    EPSG:25832 (665194, 5170903), welcome page HTTP 200 at http://localhost:8000
 - **Tools checked (2026-10-26):** Git 2.56 (user name + email set), GitHub CLI 2.103 logged
   in as `alireza-soleiman` (HTTPS, `repo` scope), Git Credential Manager handles pushes.
   Docker client 29.2, engine 29.9. **Docker Desktop does not auto-start**: start it before
-  `docker compose up -d`. Python 3.11.9 (Microsoft Store build). **No GDAL/GEOS/PROJ yet**
-  (`C:\OSGeo4W` exists but is an empty leftover). **Port 5432 is taken** by a local Windows
-  PostgreSQL, so our PostGIS uses host port 5433.
+  `docker compose up -d`. Python 3.11.9 on Windows (Microsoft Store build; not used to run
+  Django). No GDAL on Windows, and none needed (`C:\OSGeo4W` is an empty leftover).
+  **Port 5432 is taken** by a local Windows PostgreSQL, so our PostGIS uses host port 5433.
 - **Milestone 1 plan:** 1.1 default branch `main` + `git init` · 1.2 `.gitignore` + first
-  commit · 1.3 GitHub repo + `origin` · 1.4 PostGIS in Docker · 1.5 venv + Django ·
-  1.6 GDAL/GEOS/PROJ for GeoDjango · 1.7 Django project on PostGIS, secrets from env vars ·
-  1.8 verify, commit, push, quiz, `LEARNING.md`
+  commit · 1.3 GitHub repo + `origin` · 1.4 PostGIS in Docker · 1.5 Django image with GDAL
+  + `web` service · 1.6 Django project on PostGIS, secrets from env vars · 1.7 verify
+  GeoDjango · 1.8 push (ask first), quiz, `LEARNING.md`
 - **Data folders:** `data/raw/` = big downloads (ignored), `data/sample/` = small files (committed)
-- **Next step:** 1.5 — Python virtual environment + Django
+- **Next step:** 1.8 — first push (needs my OK), quiz, write Milestone 1 in `LEARNING.md`
 - **Open questions / blockers:**
-  - how to install GDAL for GeoDjango on Windows (OSGeo4W vs. running Django in Docker);
-    decide at step 1.6
   - before the first push: commits use my personal Gmail as author email, which becomes
     public on GitHub. Keep it, or switch to the GitHub `noreply` address?
