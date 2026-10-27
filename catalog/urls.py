@@ -3,7 +3,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views import MunicipalityViewSet, NbSViewSet, nbs_types
+from .views import MunicipalityViewSet, NbSViewSet, nbs_types, summary
 
 # The router creates the URLs for each ViewSet: <name>/ (list) and <name>/<id>/ (detail),
 # plus an API root page at /api/ that links to them.
@@ -13,5 +13,6 @@ router.register('municipalities', MunicipalityViewSet, basename='municipality')
 
 urlpatterns = [
     path('nbs-types/', nbs_types, name='nbs-types'),
+    path('summary/', summary, name='summary'),
     *router.urls,
 ]

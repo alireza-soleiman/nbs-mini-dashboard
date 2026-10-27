@@ -3,7 +3,7 @@
 from django.contrib.gis.db.models.functions import Area, Length, PointOnSurface, Transform
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
-from django.db.models import Count
+from django.db.models import Avg, CharField, Count, F, Func, Sum
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
@@ -99,3 +99,64 @@ def nbs_types(request):
         {'value': value, 'label': label, 'count': counts.get(value, 0)}
         for value, label in NbS.Type.choices
     ])
+
+
+# PostGIS has GeometryType(), Django 5.2 has no wrapper for it: Func calls any SQL function
+GEOMETRY_TYPE = Func(F('geom'), function='GeometryType', output_field=CharField())
+
+
+@api_view(['GET'])
+def summary(request):
+    """Totals for the overview page, all added up in the database (SQL GROUP BY).
+
+    totals           number of NbS, cost, municipalities, area of polygons, length of lines
+    by_geometry      how many points, lines and polygons
+    by_type          per NbS type: count, cost and the average of each benefit
+    by_municipality  per municipality: count and cost
+    """
+    nbs = NbS.objects.all()
+    totals = nbs.aggregate(
+        nbs=Count('id'),
+        cost_eur=Sum('cost_eur'),
+        municipalities_with_nbs=Count('municipality', distinct=True),
+    )
+    # Per-NbS size first (annotate), then the sum (aggregate). The two need different
+    # names, or the SQL refers to the wrong one.
+    sizes = nbs.annotate(one_area=Area('geom'), one_length=Length('geom')).aggregate(
+        area=Sum('one_area'), length=Sum('one_length'))
+    totals.update(
+        cost_eur=totals['cost_eur'] or 0,
+        municipalities=Municipality.objects.count(),
+        polygon_area_m2=round(sizes['area'].sq_m) if sizes['area'] else 0,
+        line_length_m=round(sizes['length'].m) if sizes['length'] else 0,
+    )
+
+    by_geometry = {'points': 0, 'lines': 0, 'polygons': 0}
+    for row in nbs.annotate(kind=GEOMETRY_TYPE).values('kind').annotate(n=Count('id')):
+        # 'POINT', 'MULTILINESTRING', ... -> points / lines / polygons
+        group = 'points' if 'POINT' in row['kind'] else 'lines' if 'LINE' in row['kind'] else 'polygons'
+        by_geometry[group] += row['n']
+
+    labels = dict(NbS.Type.choices)
+    by_type = [
+        {**row, 'label': labels[row['value']],
+         **{k: round(row[k], 2) for k in ('heat', 'flood', 'biodiversity', 'wellbeing')}}
+        for row in nbs.values(value=F('nbs_type')).annotate(
+            count=Count('id'), cost_eur=Sum('cost_eur'),
+            heat=Avg('benefit_heat'), flood=Avg('benefit_flood'),
+            biodiversity=Avg('benefit_biodiversity'), wellbeing=Avg('benefit_wellbeing'),
+        ).order_by('-count', 'value')
+    ]
+
+    by_municipality = [
+        # NbS has its own `name` field, so the municipality's name gets another alias here
+        {'istat_code': row['municipality__istat_code'], 'name': row['municipality__name'],
+         'count': row['count'], 'cost_eur': row['cost_eur']}
+        for row in nbs.filter(municipality__isnull=False)
+        .values('municipality__istat_code', 'municipality__name')
+        .annotate(count=Count('id'), cost_eur=Sum('cost_eur'))
+        .order_by('-cost_eur')
+    ]
+
+    return Response({'totals': totals, 'by_geometry': by_geometry,
+                     'by_type': by_type, 'by_municipality': by_municipality})

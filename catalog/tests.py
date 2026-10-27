@@ -133,6 +133,21 @@ class CatalogApiTests(APITestCase):
         self.assertEqual(len(data), len(NbS.Type.choices))
         self.assertIn({'value': 'green_roof', 'label': 'Green roof', 'count': 1}, data)
 
+    def test_summary_adds_up_in_the_database(self):
+        make_nbs('Park in town', 'urban_park', metre_square(11.17, 46.66, 100))  # 1 ha
+        data = self.client.get('/api/summary/').json()
+        totals = data['totals']
+        self.assertEqual(totals['nbs'], 4)
+        self.assertEqual(totals['cost_eur'], 4000)
+        self.assertEqual(totals['municipalities_with_nbs'], 1)  # the pond is outside
+        self.assertEqual(totals['municipalities'], 1)
+        self.assertAlmostEqual(totals['polygon_area_m2'], 10000, delta=20)
+        self.assertEqual(data['by_geometry'], {'points': 3, 'lines': 0, 'polygons': 1})
+        self.assertEqual(data['by_municipality'], [
+            {'istat_code': '999001', 'name': 'Test town', 'count': 3, 'cost_eur': 3000}])
+        roof = next(t for t in data['by_type'] if t['value'] == 'green_roof')
+        self.assertEqual((roof['label'], roof['count'], roof['heat']), ('Green roof', 1, 1.0))
+
 
 class MunicipalityAdminTests(TestCase):
     """Official boundaries must not change through the admin (see the Aldino accident)."""
