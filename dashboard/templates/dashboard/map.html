@@ -1,0 +1,78 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Map &amp; ranking · NbS mini-dashboard{% endblock %}
+{% block body_class %}page-map{% endblock %}
+
+{% block head %}
+  <!-- Leaflet 1.9.4 from a CDN; "integrity" makes the browser refuse a changed file -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
+{% block content %}
+<main class="map-layout" id="map-layout">
+  <aside class="sidebar" id="sidebar" aria-label="Filters, priorities and ranking">
+    <!-- On phones the sidebar is a sheet at the bottom; this handle opens/closes it -->
+    <button class="sheet-handle" id="sheet-handle" type="button" aria-expanded="false">
+      <span aria-hidden="true"></span><span class="visually-hidden">Show or hide the list</span>
+    </button>
+
+    <div class="sidebar-summary" id="summary" aria-live="polite"><!-- 29 NbS · €8.6M · … --></div>
+    <p id="status" class="status" role="status">Loading…</p>
+
+    <details class="panel" open>
+      <summary><span>Filters</span><span class="panel-note" id="filter-note"></span></summary>
+      <div class="panel-body">
+        <div class="field-head">
+          <span class="field-label" id="type-label">NbS type</span>
+          <span class="link-buttons">
+            <button type="button" class="link" id="types-all">All</button>
+            <button type="button" class="link" id="types-none">None</button>
+          </span>
+        </div>
+        <div class="chips" id="type-filter" role="group" aria-labelledby="type-label">
+          <!-- one toggle chip per type, built from /api/nbs-types/ -->
+        </div>
+
+        <label class="field-label" for="municipality-search">Municipality</label>
+        <div class="search">
+          <input id="municipality-search" type="search" list="municipality-options"
+                 placeholder="All municipalities – type to search" autocomplete="off">
+          <datalist id="municipality-options"><!-- municipalities that have NbS --></datalist>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary><span>Priorities</span><span class="panel-note" id="preset-note"></span></summary>
+      <div class="panel-body">
+        <div class="presets" id="presets" role="group" aria-label="Weight presets"></div>
+        <div id="weights" class="weights"><!-- one slider per criterion --></div>
+      </div>
+    </details>
+
+    <section class="panel ranking-panel" aria-labelledby="ranking-title">
+      <div class="ranking-head">
+        <h2 id="ranking-title">Ranking</h2>
+        <div id="legend" class="legend" aria-label="Score colours"></div>
+      </div>
+      <ol id="ranking" class="ranking"><!-- best NbS first --></ol>
+    </section>
+  </aside>
+
+  <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-controls="sidebar"
+          aria-expanded="true" title="Hide the panel">
+    <span aria-hidden="true">‹</span><span class="visually-hidden">Hide or show the panel</span>
+  </button>
+
+  <div id="map" aria-label="Map of the NbS and the municipalities"></div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- type="module": the file can import the other JavaScript files -->
+<script type="module" src="{% static 'dashboard/js/map.js' %}"></script>
+{% endblock %}

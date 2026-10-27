@@ -1,0 +1,65 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Overview · NbS mini-dashboard{% endblock %}
+{% block body_class %}page-overview{% endblock %}
+
+{% block content %}
+<main class="overview">
+  <section class="intro">
+    <div>
+      <h1>Nature-Based Solutions around Merano</h1>
+      <p>An overview of the NbS catalogue: how many, where, what they cost and what they
+        bring. Open the map to filter them and rank them with your own priorities.</p>
+    </div>
+    <a class="button button-primary" href="{% url 'map' %}">Open the map &rarr;</a>
+  </section>
+
+  <p id="status" class="status" role="status">Loading…</p>
+
+  <!-- Key figures: from /api/summary/ -->
+  <section class="kpis" id="kpis" aria-label="Key figures"></section>
+
+  <section class="charts">
+    <article class="card">
+      <header><h2>NbS per type</h2><p>Number of NbS of each type</p></header>
+      <div id="chart-types" class="bars"></div>
+    </article>
+
+    <article class="card">
+      <header><h2>Estimated cost per municipality</h2><p>Sum of all NbS costs</p></header>
+      <div id="chart-municipalities" class="bars"></div>
+    </article>
+
+    <article class="card card-wide">
+      <header><h2>Benefit profile per type</h2>
+        <p>Average score from 0 (none) to 5 (very high); darker = higher</p></header>
+      <div id="chart-heatmap" class="heatmap"></div>
+    </article>
+
+    <article class="card card-wide">
+      <header><h2>Cost and benefit of each NbS</h2>
+        <p>Each dot is one NbS. Up = more benefit (average of the 4 benefits);
+          left = cheaper. Top-left = good value.</p></header>
+      <div id="chart-scatter" class="scatter"></div>
+    </article>
+
+    <article class="card">
+      <header><h2>Top 5 with balanced priorities</h2>
+        <p>All five criteria weighted equally · click to see it on the map</p></header>
+      <ol id="top-five" class="top-list"></ol>
+    </article>
+
+    <article class="card">
+      <header><h2>Shapes on the map</h2><p>How the NbS are drawn</p></header>
+      <div id="chart-shapes" class="bars"></div>
+    </article>
+  </section>
+
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'dashboard/js/overview.js' %}"></script>
+{% endblock %}

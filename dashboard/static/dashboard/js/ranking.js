@@ -20,6 +20,20 @@ export const CRITERIA = [
 export const BENEFIT_MAX = 5;      // benefit scores go from 0 to 5
 export const DEFAULT_WEIGHT = 5;   // sliders go from 0 to 10
 
+// Ready-made weight sets for typical priorities (order: heat, flood, biodiversity,
+// wellbeing, cost). The user can start from one and move the sliders.
+const preset = (heat, flood, biodiversity, wellbeing, cost) => ({
+  benefit_heat: heat, benefit_flood: flood, benefit_biodiversity: biodiversity,
+  benefit_wellbeing: wellbeing, cost_eur: cost,
+});
+export const PRESETS = [
+  { key: 'balanced', label: 'Balanced', weights: preset(5, 5, 5, 5, 5) },
+  { key: 'heat', label: 'Heat', weights: preset(10, 3, 3, 5, 3) },
+  { key: 'flood', label: 'Flood', weights: preset(3, 10, 4, 3, 3) },
+  { key: 'nature', label: 'Nature', weights: preset(3, 4, 10, 4, 2) },
+  { key: 'budget', label: 'Low budget', weights: preset(4, 4, 3, 3, 10) },
+];
+
 /** Value from 0 (worst) to 1 (best) for one criterion of one NbS. */
 export function normalise(properties, criterion, costRange) {
   const value = properties[criterion.key];

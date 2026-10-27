@@ -1,0 +1,35 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NbS mini-dashboard{% endblock %}</title>
+  {% block head %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+</head>
+{# Django writes the API addresses here, so the JavaScript does not hard-code them #}
+<body class="{% block body_class %}{% endblock %}"
+      data-nbs-url="{% url 'nbs-list' %}"
+      data-municipalities-url="{% url 'municipality-list' %}"
+      data-types-url="{% url 'nbs-types' %}"
+      data-summary-url="{% url 'summary' %}"
+      data-map-url="{% url 'map' %}">
+
+  <header class="topbar">
+    <a class="brand" href="{% url 'overview' %}">
+      <span class="brand-mark" aria-hidden="true"></span>NbS mini-dashboard
+    </a>
+    <nav class="nav" aria-label="Pages">
+      <a href="{% url 'overview' %}" {% if active == 'overview' %}aria-current="page"{% endif %}>Overview</a>
+      <a href="{% url 'map' %}" {% if active == 'map' %}aria-current="page"{% endif %}>Map &amp; ranking</a>
+    </nav>
+    <span class="badge-fictional" title="The NbS are invented for learning; the municipality boundaries are real (ISTAT).">
+      Sample data · fictional
+    </span>
+  </header>
+
+  {% block content %}{% endblock %}
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
