@@ -22,3 +22,10 @@ header {
 #map {
   flex: 1;
 }
+
+/* Clicking a municipality gives its SVG path the browser focus, and the browser
+   draws a rectangular focus outline around it. These paths cannot be reached
+   with the keyboard (no tabindex), so hiding the outline loses nothing. */
+.leaflet-interactive:focus {
+  outline: none;
+}
