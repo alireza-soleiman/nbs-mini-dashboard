@@ -84,36 +84,23 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 2 — Leaflet only: **done** (2026-10-27). Milestone 3 not started.
-  Milestone 1 done (2026-10-26 → 27)
-- **Milestone 2 plan:** 2.1 Leaflet map + OSM tiles + Merano marker · 2.2 download ISTAT
-  boundaries to `data/raw/` (ask first) + inspect with `ogrinfo` · 2.3 `ogr2ogr` → South
-  Tyrol only, EPSG:4326 GeoJSON in `frontend/data/` · 2.4 draw municipalities (style,
-  popups, hover) · 2.5 quiz, `LEARNING.md`, push (ask first)
-- **Milestone 2 progress:**
-  - 2.1 done: `frontend/` (`index.html`, `css/map.css`, `js/map.js`), Leaflet 1.9.4 from
-    unpkg with SRI `integrity`, OSM tiles, marker on Merano. Served with
-    `python -m http.server 8080 --bind 127.0.0.1 --directory frontend` (also saved as
-    "map" in `.claude/launch.json`) → http://localhost:8080
-  - 2.2 done: ISTAT generalised boundaries `data/raw/Limiti01012026_g.zip` (10.0 MB,
-    boundaries at 1 Jan 2026, SHA256 in the build script). Layer `Com01012026_g_WGS84`:
-    7,896 municipalities, CRS **EPSG:32632** (WGS 84 / UTM 32N, metres), fields
-    `COD_PROV`, `PRO_COM_T` (6-digit ISTAT code), `COMUNE` (bilingual name),
-    `COMUNE_A`, `Shape_Area` (m²). South Tyrol = `COD_PROV = 21` → 116 municipalities.
-    Merano = `021051`, "Merano/Meran"
-  - 2.3 done: `scripts/build_municipalities_geojson.sh` (run in the `web` container)
-    → `frontend/data/municipalities.geojson` (386 KB, EPSG:4326, RFC 7946, 5 decimals,
-    properties `istat_code` + `name`)
-  - 2.4 done: `map.js` loads the GeoJSON with `fetch`, `L.geoJSON` with a style function
-    (Merano highlighted), sticky tooltip, popup, hover highlight + `resetStyle`,
-    `fitBounds`, ISTAT attribution. Checked in the browser
-  - Click rectangle fixed: it was the browser focus outline on the clicked SVG path →
-    `.leaflet-interactive:focus { outline: none; }` in `map.css`
-  - 2.5 done: quiz answered, Milestone 2 written in `LEARNING.md`
-  - Tip for browser checks: Windows display scaling is 125 %, so screenshot pixels =
-    CSS pixels × 1.25
-- **Next step:** push Milestone 2 (ask first), then Milestone 3 — PostGIS in SQL.
-  **Waiting for my go-ahead**
+- **Milestone:** 3 — PostGIS in SQL (started 2026-10-27). Milestones 1–2 done and pushed
+- **Milestone 3 plan:** 3.1 load municipalities into PostGIS (EPSG:25832) · 3.2 explore +
+  areas · 3.3 projection test (same polygon in 4 CRSs) · 3.4 relationships (`ST_Touches`,
+  `ST_Within`, centroid vs. point on surface) · 3.5 buffers + distances (`ST_Buffer`,
+  `ST_DWithin`) + spatial index (`EXPLAIN`) · 3.6 quiz, `LEARNING.md`, push (ask first)
+- **Milestone 3 progress:**
+  - 3.1 done: `sql/` mounted read-only into `db` at `/sql`.
+    `scripts/load_municipalities_postgis.sh` (run in `web`; password via `PG*` env vars)
+    → table `istat_municipalities` (`id`, `istat_code`, `name`, `name_alt`,
+    `istat_area_m2`, `geom geometry(MultiPolygon,25832)`, GiST index), 116 rows.
+    Needed `-lco PRECISION=NO` (shapefile `numeric(18,11)` overflowed)
+  - 3.2 done: `sql/01_explore.sql`. Province total 7,400 km²; Merano 25.98 km² (= ISTAT);
+    multipart: Lagundo, Termeno
+  - 3.3 done: `sql/02_projections.sql`. Merano area: 25.98 km² (25832), 0.003054 sq
+    degrees (4326), 25.99 km² (geography), 55.14 km² (3857, ×2.12). 1° east = 76.5 km,
+    1° north = 111.2 km
+- **Next step:** 3.4 — spatial relationships
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
@@ -130,12 +117,33 @@ city where Eurac is based as an example in this project.
   `http.server`, not for Django). No GDAL on Windows, and none needed.
 - **Ports:** 5432 is taken by a local Windows PostgreSQL → our PostGIS is on host port
   **5433**. Django: **8000**. Static map server (Milestone 2): **8080**.
+- **SQL files:** `sql/` is mounted read-only into `db` at `/sql` →
+  `docker compose exec db psql -U nbs -d nbs -f /sql/<file>.sql`. The `tiger` schema
+  in the database is the PostGIS image's US geocoder: ignore it.
+- **Browser checks:** Windows display scaling is 125 %, so screenshot pixels = CSS
+  pixels × 1.25. Git Bash: use `MSYS_NO_PATHCONV=1` for paths starting with `/`.
 - **Commit email for this repo:** GitHub noreply
   `153937783+alireza-soleiman@users.noreply.github.com` (`git config --local`;
   global stays Gmail).
 - **Data folders:** `data/raw/` = big downloads (ignored) · `data/sample/` = small sample
   data, e.g. NbS (committed) · `frontend/data/` = small display files for the map,
   EPSG:4326 (committed)
+
+### Milestone 2 log (done 2026-10-27)
+
+- `frontend/` (`index.html`, `css/map.css`, `js/map.js`): Leaflet 1.9.4 from unpkg with
+  SRI `integrity`, OSM tiles, 116 municipalities via `fetch` + `L.geoJSON` (style
+  function with Merano highlighted, tooltip, popup, hover + `resetStyle`, `fitBounds`,
+  ISTAT attribution). Focus-outline rectangle hidden with
+  `.leaflet-interactive:focus { outline: none; }`
+- Served with `python -m http.server 8080 --bind 127.0.0.1 --directory frontend`
+  ("map" in `.claude/launch.json`) → http://localhost:8080
+- Data: ISTAT `data/raw/Limiti01012026_g.zip` (10.0 MB, boundaries at 1 Jan 2026),
+  layer `Com01012026_g_WGS84`, **EPSG:32632**, fields `COD_PROV`, `PRO_COM_T` (ISTAT
+  code), `COMUNE` (bilingual name), `COMUNE_A`, `Shape_Area`. South Tyrol =
+  `COD_PROV = 21` → 116. Merano = `021051`, "Merano/Meran"
+- `scripts/build_municipalities_geojson.sh` → `frontend/data/municipalities.geojson`
+  (386 KB, EPSG:4326, RFC 7946, 5 decimals, `istat_code` + `name`)
 
 ### Milestone 1 log (done 2026-10-26 → 2026-10-27)
 
