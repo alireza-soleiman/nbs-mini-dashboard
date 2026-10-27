@@ -27,6 +27,9 @@ services:
     volumes:
       # Database files live in a named Docker volume, not in the project folder
       - pgdata:/var/lib/postgresql/data
+      # Our SQL files, read-only (":ro"), so psql can run them:
+      #   docker compose exec db psql -U nbs -d nbs -f /sql/01_explore.sql
+      - ./sql:/sql:ro
     healthcheck:
       # The container counts as "healthy" once PostgreSQL accepts connections
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
