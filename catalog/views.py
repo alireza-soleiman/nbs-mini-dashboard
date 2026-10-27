@@ -1,13 +1,16 @@
 """API views: which objects the API returns, and in which shape."""
 
-from django.contrib.gis.db.models.functions import Transform
+from django.contrib.gis.db.models.functions import Area, Transform
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.db.models import Count
 from rest_framework import viewsets
+from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
-from .models import NbS
-from .serializers import NbSSerializer
+from .models import Municipality, NbS
+from .serializers import MunicipalitySerializer, NbSSerializer
 
 
 class NbSViewSet(viewsets.ReadOnlyModelViewSet):
@@ -57,3 +60,33 @@ class NbSViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(location__dwithin=(point, D(m=radius)))
 
         return queryset
+
+
+class MunicipalityViewSet(viewsets.ReadOnlyModelViewSet):
+    """GeoJSON of the 116 municipalities.  /api/municipalities/021051/ = Merano.
+
+    Each Feature has its area (km², computed in metres) and its number of NbS.
+    """
+
+    serializer_class = MunicipalitySerializer
+    lookup_field = 'istat_code'  # URLs use the ISTAT code instead of the database id
+
+    def get_queryset(self):
+        return Municipality.objects.annotate(
+            geom_4326=Transform('geom', 4326),  # for the map (degrees)
+            area=Area('geom'),                  # in EPSG:25832, so in m²
+            nbs_count=Count('nbs'),             # how many NbS lie in this municipality
+        )
+
+
+@api_view(['GET'])
+def nbs_types(request):
+    """All NbS types: value (for ?type=), label (for people) and how many exist.
+
+    The map uses this list to build its filter checkboxes (Milestone 6).
+    """
+    counts = dict(NbS.objects.values_list('nbs_type').annotate(n=Count('id')))
+    return Response([
+        {'value': value, 'label': label, 'count': counts.get(value, 0)}
+        for value, label in NbS.Type.choices
+    ])

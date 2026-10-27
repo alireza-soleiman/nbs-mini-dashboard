@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework_gis.fields import GeometryField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import NbS
+from .models import Municipality, NbS
 
 
 class NbSSerializer(GeoFeatureModelSerializer):
@@ -27,3 +27,22 @@ class NbSSerializer(GeoFeatureModelSerializer):
             'cost_eur', 'benefit_heat', 'benefit_flood', 'benefit_biodiversity',
             'benefit_wellbeing', 'municipality',
         ]
+
+
+class MunicipalitySerializer(GeoFeatureModelSerializer):
+    """One municipality as a GeoJSON Feature, with its area and number of NbS."""
+
+    # Same idea as for NbS: the view adds `geom_4326`. 5 decimals = about 1 m (as in M2)
+    geometry = GeometryField(source='geom_4326', read_only=True, precision=5)
+    # Computed by the view in EPSG:25832 (metres), so the area is correct
+    area_km2 = serializers.SerializerMethodField()
+    nbs_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Municipality
+        geo_field = 'geometry'
+        id_field = 'istat_code'  # the Feature "id" is the ISTAT code, e.g. "021051"
+        fields = ['istat_code', 'geometry', 'name', 'name_alt', 'area_km2', 'nbs_count']
+
+    def get_area_km2(self, municipality):
+        return round(municipality.area.sq_km, 2)
