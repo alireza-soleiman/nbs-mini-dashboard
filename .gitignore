@@ -58,3 +58,7 @@ pgdata/
 # Big GIS downloads go to data/raw/ (ignored);
 # small files we create go to data/sample/ (committed)
 data/raw/
+
+# --- Media -------------------------------------------------------------
+# Demo video and screenshots for LinkedIn (made by scripts/record_demo.py)
+linkedin/

@@ -107,7 +107,9 @@ Open **http://localhost:8000/map/**.
 | **Collapse** | "Filters" and "Priorities" can be folded (click their title). The **‹ button** on the edge of the panel hides the whole panel for a bigger map. |
 
 **On a phone** the map fills the screen and the panel is a **sheet at the bottom**:
-tap the grey handle to slide it up or down.
+tap the grey handle to slide it up or down. While the sheet is open, filter results are
+fitted into the visible strip above it. Tapping an NbS card closes the sheet, so you
+see the map fly to the NbS and open its popup.
 
 ## 5. How the score is calculated
 
@@ -344,3 +346,4 @@ the admin; and that both pages and their files are delivered.
 | Design (colours, layout, phone view) | `dashboard/static/dashboard/css/dashboard.css` |
 | The sample NbS | `data/sample/nbs_sample.geojson` |
 | Settings (database, security) | `config/settings.py` + `.env` |
+| The demo video and screenshots (for LinkedIn) | `scripts/record_demo.py` → `linkedin/` (not in Git); the tools it needs are listed at the top of the script |
