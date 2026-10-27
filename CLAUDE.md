@@ -94,10 +94,21 @@ city where Eurac is based as an example in this project.
     unpkg with SRI `integrity`, OSM tiles, marker on Merano. Served with
     `python -m http.server 8080 --bind 127.0.0.1 --directory frontend` (also saved as
     "map" in `.claude/launch.json`) → http://localhost:8080
-  - Data source chosen: ISTAT generalised boundaries `Limiti01012026_g.zip` (10.0 MB),
-    https://www.istat.it/storage/cartografia/confini_amministrativi/generalizzati/2026/
-    South Tyrol = province code `COD_PROV = 21`. Not downloaded yet
-- **Next step:** 2.2 — download the ISTAT zip (waiting for my OK), inspect it
+  - 2.2 done: ISTAT generalised boundaries `data/raw/Limiti01012026_g.zip` (10.0 MB,
+    boundaries at 1 Jan 2026, SHA256 in the build script). Layer `Com01012026_g_WGS84`:
+    7,896 municipalities, CRS **EPSG:32632** (WGS 84 / UTM 32N, metres), fields
+    `COD_PROV`, `PRO_COM_T` (6-digit ISTAT code), `COMUNE` (bilingual name),
+    `COMUNE_A`, `Shape_Area` (m²). South Tyrol = `COD_PROV = 21` → 116 municipalities.
+    Merano = `021051`, "Merano/Meran"
+  - 2.3 done: `scripts/build_municipalities_geojson.sh` (run in the `web` container)
+    → `frontend/data/municipalities.geojson` (386 KB, EPSG:4326, RFC 7946, 5 decimals,
+    properties `istat_code` + `name`)
+  - 2.4 done: `map.js` loads the GeoJSON with `fetch`, `L.geoJSON` with a style function
+    (Merano highlighted), sticky tooltip, popup, hover highlight + `resetStyle`,
+    `fitBounds`, ISTAT attribution. Checked in the browser
+  - Tip for browser checks: Windows display scaling is 125 %, so screenshot pixels =
+    CSS pixels × 1.25
+- **Next step:** 2.5 — Milestone 2 quiz, `LEARNING.md`, push (ask first)
 - **Open questions / blockers:** none
 - **Weak spots to revisit** (from the Milestone 1 quiz): Docker networking (`localhost`
   inside a container), why `.env` is in `.dockerignore`
