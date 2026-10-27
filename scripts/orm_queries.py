@@ -24,17 +24,17 @@ print('--- 1. NbS per municipality (the municipality was found by NbS.save())')
 for m in Municipality.objects.annotate(n=Count('nbs')).filter(n__gt=0).order_by('-n', 'name'):
     print(f'{m.n:4}  {m.name}')
 
-print('\n--- 2. NbS within 1 km of the clicked point          SQL: ST_DWithin(location, point, 1000)')
-near = NbS.objects.filter(location__dwithin=(site, D(km=1)))
+print('\n--- 2. NbS within 1 km of the clicked point          SQL: ST_DWithin(geom, point, 1000)')
+near = NbS.objects.filter(geom__dwithin=(site, D(km=1)))
 for n in near:
     print('      ', n.name)
 
-print('\n--- 3. The 3 nearest NbS and their distance          SQL: ST_Distance + ORDER BY')
-for n in NbS.objects.annotate(distance=Distance('location', site)).order_by('distance')[:3]:
+print('\n--- 3. The 3 nearest NbS and their distance (to the nearest part of the shape)')
+for n in NbS.objects.annotate(distance=Distance('geom', site)).order_by('distance')[:3]:
     print(f'{n.distance.m:7.0f} m  {n.name}')
 
 print('\n--- 4. Total cost of all NbS within 5 km of the point')
-total = NbS.objects.filter(location__dwithin=(site, D(km=5))).aggregate(total=Sum('cost_eur'))
+total = NbS.objects.filter(geom__dwithin=(site, D(km=5))).aggregate(total=Sum('cost_eur'))
 print(f"{total['total']:,} EUR")
 
 print("\n--- 5. Municipalities within 2 km of Merano's border  (the SQL in Milestone 3 gave 12)")
@@ -46,9 +46,11 @@ for m in Municipality.objects.annotate(centroid=Centroid('geom'), on_surface=Poi
         print(f'{m.name}: centroid inside = {m.geom.contains(m.centroid)}, '
               f'point on surface inside = {m.geom.contains(m.on_surface)}')
 
-print('\n--- 7. Stored in metres, sent to the map in degrees (a preview of Milestone 5)')
-for n in NbS.objects.annotate(lonlat=Transform('location', 4326))[:3]:
-    print(f'{n.name}: 25832 ({n.location.x:.0f}, {n.location.y:.0f}) -> 4326 ({n.lonlat.x:.5f}, {n.lonlat.y:.5f})')
+print('\n--- 7. Stored in metres, sent to the map in degrees (marker point of each shape)')
+for n in NbS.objects.annotate(inside=PointOnSurface('geom'),
+                              lonlat=Transform(PointOnSurface('geom'), 4326))[:3]:
+    print(f'{n.code} {n.geom.geom_type:10}: 25832 ({n.inside.x:.0f}, {n.inside.y:.0f}) '
+          f'-> 4326 ({n.lonlat.x:.5f}, {n.lonlat.y:.5f})')
 
 print('\n--- 8. The SQL Django wrote for query 2')
 sql = re.sub(r"E'.*?'::bytea", '<point>', str(near.query), flags=re.S)

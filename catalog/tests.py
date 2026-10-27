@@ -7,20 +7,29 @@ so these tests never touch the real data.
 """
 
 from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import MultiPolygon, Point, Polygon
+from django.contrib.gis.geos import LineString, MultiPolygon, Point, Polygon
 from django.test import TestCase
 from rest_framework.test import APITestCase
 
 from .models import Municipality, NbS
 
 
-def make_nbs(name, nbs_type, lon, lat):
-    """Create an NbS at a lon/lat point (Django stores it in EPSG:25832)."""
+def make_nbs(name, nbs_type, geom):
+    """Create an NbS with a lon/lat geometry (Django stores it in EPSG:25832)."""
     return NbS.objects.create(
-        name=name, nbs_type=nbs_type, location=Point(lon, lat, srid=4326),
+        name=name, nbs_type=nbs_type, geom=geom,
         cost_eur=1000, benefit_heat=1, benefit_flood=1, benefit_biodiversity=1,
         benefit_wellbeing=1,
     )
+
+
+def metre_square(lon, lat, side):
+    """A square of `side` metres around a lon/lat point, built in metres (25832)."""
+    centre = Point(lon, lat, srid=4326).transform(25832, clone=True)
+    square = Polygon.from_bbox((centre.x - side / 2, centre.y - side / 2,
+                                centre.x + side / 2, centre.y + side / 2))
+    square.srid = 25832
+    return square
 
 
 class CatalogApiTests(APITestCase):
@@ -31,9 +40,11 @@ class CatalogApiTests(APITestCase):
         cls.town = Municipality.objects.create(
             istat_code='999001', name='Test town', geom=MultiPolygon(box, srid=4326),
         )
-        cls.roof = make_nbs('Roof in town', 'green_roof', 11.1597, 46.6713)
-        cls.trees = make_nbs('Trees in town', 'street_trees', 11.1625, 46.6700)  # ~258 m away
-        cls.pond = make_nbs('Pond far away', 'retention_pond', 11.0050, 46.6490)  # ~12 km away
+        cls.roof = make_nbs('Roof in town', 'green_roof', Point(11.1597, 46.6713, srid=4326))
+        cls.trees = make_nbs('Trees in town', 'street_trees',
+                             Point(11.1625, 46.6700, srid=4326))  # ~258 m away
+        cls.pond = make_nbs('Pond far away', 'retention_pond',
+                            Point(11.0050, 46.6490, srid=4326))  # ~12 km away
 
     def names(self, **params):
         """Names of the NbS that /api/nbs/ returns for these query parameters."""
@@ -54,6 +65,8 @@ class CatalogApiTests(APITestCase):
         self.assertAlmostEqual(lat, 46.6713, places=6)
 
     def test_list_needs_only_one_query(self):
+        # The first request also looks up the units of EPSG:25832 once (then cached)
+        self.client.get('/api/nbs/')
         # Fails if someone removes select_related('municipality') (N+1 problem)
         with self.assertNumQueries(1):
             self.client.get('/api/nbs/')
@@ -77,6 +90,31 @@ class CatalogApiTests(APITestCase):
         self.assertEqual(self.names(near=near, radius=100), {'Roof in town'})
         self.assertEqual(self.names(near=near, radius=500), {'Roof in town', 'Trees in town'})
         self.assertEqual(len(self.names(near=near, radius=20000)), 3)
+
+    # --- lines and polygons ---------------------------------------------------
+
+    def test_polygon_nbs_has_area_marker_and_municipality(self):
+        park = make_nbs('Park in town', 'urban_park', metre_square(11.17, 46.66, 50))
+        self.assertEqual(park.municipality, self.town)  # found via a point on the shape
+        props = next(f for f in self.client.get('/api/nbs/').json()['features']
+                     if f['id'] == park.pk)['properties']
+        self.assertEqual(props['geometry_type'], 'Polygon')
+        self.assertAlmostEqual(props['area_m2'], 2500, delta=5)  # 50 m x 50 m
+        self.assertIsNone(props['length_m'])
+        lon, lat = props['marker']
+        self.assertTrue(Polygon.from_bbox((11.169, 46.659, 11.171, 46.661)).contains(Point(lon, lat)))
+
+    def test_line_nbs_has_length_and_is_found_by_any_part(self):
+        # A ~3.3 km line that starts far from the point and ends exactly on it
+        river = make_nbs('River', 'river_restoration',
+                         LineString((11.13, 46.65), (11.1597, 46.6713), srid=4326))
+        props = next(f for f in self.client.get('/api/nbs/').json()['features']
+                     if f['id'] == river.pk)['properties']
+        self.assertEqual(props['geometry_type'], 'LineString')
+        self.assertAlmostEqual(props['length_m'], 3280, delta=100)
+        self.assertIsNone(props['area_m2'])
+        # Within 100 m of the line's END point, although its start is ~3 km away
+        self.assertIn('River', self.names(near='11.1597,46.6713', radius=100))
 
     def test_bad_near_returns_400(self):
         self.assertEqual(self.client.get('/api/nbs/', {'near': 'Merano'}).status_code, 400)

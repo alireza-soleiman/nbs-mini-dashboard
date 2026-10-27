@@ -47,6 +47,11 @@ class NbS(models.Model):
         RIVER_RESTORATION = 'river_restoration', 'River restoration'
         WETLAND = 'wetland', 'Wetland'
 
+    # A short, stable key (e.g. "MER-01"); imports use it to find an existing NbS
+    code = models.CharField(
+        max_length=20, unique=True, null=True, blank=True,
+        help_text='Short unique code, e.g. MER-01. Optional for NbS added by hand.',
+    )
     name = models.CharField(max_length=200)
     nbs_type = models.CharField('type', max_length=30, choices=Type.choices)
     description = models.TextField(blank=True)
@@ -58,8 +63,10 @@ class NbS(models.Model):
     benefit_biodiversity = benefit_field('biodiversity')
     benefit_wellbeing = benefit_field('health and wellbeing')
 
-    location = models.PointField(srid=SRID)
-    # Not typed in by hand: save() finds it from the location
+    # Any geometry type: a point (rain garden), a line (street trees, a river)
+    # or a polygon (green roof, park, wetland)
+    geom = models.GeometryField(srid=SRID, help_text='A point, a line or a polygon.')
+    # Not typed in by hand: save() finds it from the geometry
     municipality = models.ForeignKey(
         Municipality,
         on_delete=models.SET_NULL,
@@ -78,7 +85,10 @@ class NbS(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        # Point in polygon with the ORM: "which municipality contains this location?"
-        # Django writes the ST_Contains(...) SQL, including ST_Transform if the SRIDs differ.
-        self.municipality = Municipality.objects.filter(geom__contains=self.location).first()
+        self.code = self.code or None  # '' would break the unique rule for a second NbS
+        # A line or polygon can cross a border, so use one point that is surely ON the
+        # shape (ST_PointOnSurface, see Milestone 3), then ask: which municipality
+        # contains it? Django adds ST_Transform if the SRIDs differ.
+        inside = self.geom.point_on_surface
+        self.municipality = Municipality.objects.filter(geom__contains=inside).first()
         super().save(*args, **kwargs)

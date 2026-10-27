@@ -1,6 +1,6 @@
 """API views: which objects the API returns, and in which shape."""
 
-from django.contrib.gis.db.models.functions import Area, Transform
+from django.contrib.gis.db.models.functions import Area, Length, PointOnSurface, Transform
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models import Count
@@ -19,8 +19,8 @@ class NbSViewSet(viewsets.ReadOnlyModelViewSet):
     Optional filters (they can be combined):
       ?type=green_roof&type=rain_garden   one or more NbS types
       ?municipality=021051                ISTAT code of a municipality
-      ?near=11.1597,46.6713&radius=1000   within `radius` metres of a lon/lat point
-                                          (radius is optional, default 1000)
+      ?near=11.1597,46.6713&radius=1000   any part within `radius` metres of a lon/lat
+                                          point (radius is optional, default 1000)
     """
 
     serializer_class = NbSSerializer
@@ -31,8 +31,16 @@ class NbSViewSet(viewsets.ReadOnlyModelViewSet):
             # Load each NbS's municipality in the SAME query (a SQL JOIN). Without this,
             # printing the municipality name would cost one extra query per NbS.
             .select_related('municipality')
-            # Stored in metres (25832); the map needs lon/lat (4326). PostGIS converts.
-            .annotate(location_4326=Transform('location', 4326))
+            # The stored geometry (metres) is not sent itself: skip loading it twice
+            .defer('geom')
+            .annotate(
+                # Stored in metres (25832); the map needs lon/lat (4326). PostGIS converts.
+                geom_4326=Transform('geom', 4326),
+                marker_4326=Transform(PointOnSurface('geom'), 4326),
+                # Sizes in metres, computed on the 25832 geometry
+                area=Area('geom'),      # 0 for points and lines
+                length=Length('geom'),  # 0 for points and polygons
+            )
         )
         params = self.request.query_params
 
@@ -55,9 +63,10 @@ class NbSViewSet(viewsets.ReadOnlyModelViewSet):
             except ValueError:
                 raise ValidationError({'near': 'Use near=<lon>,<lat>&radius=<metres>, '
                                                'e.g. near=11.1597,46.6713&radius=1000'})
-            # A lon/lat point: Django adds ST_Transform to 25832, PostGIS uses ST_DWithin
+            # A lon/lat point: Django adds ST_Transform to 25832, PostGIS uses ST_DWithin,
+            # which measures to the NEAREST part of a line or polygon
             point = Point(lon, lat, srid=4326)
-            queryset = queryset.filter(location__dwithin=(point, D(m=radius)))
+            queryset = queryset.filter(geom__dwithin=(point, D(m=radius)))
 
         return queryset
 
