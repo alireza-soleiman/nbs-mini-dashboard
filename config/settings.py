@@ -32,6 +32,11 @@ DEBUG = os.environ.get('DJANGO_DEBUG', '0') == '1'
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+# Django's default ('same-origin') sends no Referer header to other sites. The
+# OpenStreetMap tile servers require one and return "blocked" tiles without it.
+# This value (also the browsers' default) sends only the origin, never the path.
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 
 # Application definition
 
@@ -44,6 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # GeoDjango: geometry model fields, spatial lookups, GIS admin widgets
     'django.contrib.gis',
+    # Our apps
+    'catalog',
 ]
 
 MIDDLEWARE = [
