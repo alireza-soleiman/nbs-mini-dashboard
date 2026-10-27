@@ -290,7 +290,105 @@ To look at PostGIS data directly, I can use QGIS (host `127.0.0.1`, port `5433`)
 
 ## Milestone 4 — GeoDjango models + import script
 
-_Not started yet._
+_Done: 2026-10-27._
+
+### The big picture
+
+Django now owns the data. Two models in `catalog/models.py` became PostGIS tables; the
+116 municipalities and 12 **fictional** sample NbS around Merano are loaded by
+management commands; the admin shows them on maps (http://localhost:8000/admin/,
+login data in `.env`). Every Milestone 3 SQL question now also works as Python.
+
+### Key concepts
+
+**Models → tables**
+- `from django.contrib.gis.db import models` = normal models + geometry fields.
+- `MultiPolygonField(srid=25832)` → `geometry(MULTIPOLYGON,25832)`;
+  `PointField(srid=25832)` → `geometry(POINT,25832)`. `migrate` also creates a **GiST
+  index** for every geometry field. `sqlmigrate catalog 0001` shows the SQL.
+- **Decision:** store in **EPSG:25832** (metres): `Area` → m², `Distance` → m,
+  `D(km=1)` → `1000.0`. The API will transform to 4326 for the map (Milestone 5).
+- `TextChoices`: stored value `green_roof`, label "Green roof".
+- The four benefit scores (0–5) + cost are the **criteria** for the ranking (M7).
+
+**Django transforms for me, if the geometry knows its SRID**
+- `Point(11.1597, 46.6713, srid=4326)` saved into a 25832 field → Django writes
+  `ST_Transform(<point>, 25832)` into the INSERT, and **PostGIS** does the maths.
+  Result: (665194, 5170903).
+- The same in queries: `filter(geom__contains=point_4326)` →
+  `ST_Contains(geom, ST_Transform(<point>, 25832))`.
+- A `Point` **without** `srid=` would bring back the M3 problem (wrong place / 0 rows).
+
+**ORM lookups = PostGIS functions**
+
+| ORM | PostGIS |
+|---|---|
+| `filter(geom__contains=p)` | `ST_Contains` |
+| `filter(geom__touches=g)` | `ST_Touches` |
+| `filter(location__dwithin=(p, D(km=1)))` | `ST_DWithin(…, 1000)` |
+| `annotate(d=Distance('location', p))` | `ST_Distance` |
+| `Area('geom')`, `Centroid`, `PointOnSurface`, `Transform('location', 4326)` | `ST_Area`, `ST_Centroid`, `ST_PointOnSurface`, `ST_Transform` |
+
+**Logic in `save()`**
+- `NbS.save()` runs `Municipality.objects.filter(geom__contains=self.location).first()`
+  before saving → the municipality is filled in automatically, for the CSV import
+  **and** for a click in the admin.
+- Limit: it only runs when the NbS is saved. If a boundary changes later, old NbS
+  are not updated.
+
+**Validation has layers**
+- `save()` stores whatever it gets. The database only checks what the column says
+  (`CHECK (benefit_heat >= 0)` from `PositiveSmallIntegerField`).
+- `choices` and `MaxValueValidator(5)` live in **Python**: they run in forms (admin,
+  later the API) and in `full_clean()`, never in `save()`.
+- So the loader calls `full_clean()` before `save()`. A real database rule would need a
+  `CheckConstraint` (→ Milestone 8).
+
+**Importing**
+- `DataSource(path)[0]` opens a GIS file (also inside a zip with `/vsizip/`);
+  `feature.get('FIELD')`, `feature.geom.transform(25832)`, `.geos` → saveable geometry.
+- `update_or_create` (or "find by key, else new") makes a command safe to run twice.
+- `@transaction.atomic`: one error → nothing is saved.
+- Sample data in `data/sample/` is marked as fictional in its README.
+
+**Admin**
+- `GISModelAdmin` shows geometry fields on an OpenLayers map with OSM tiles.
+- OSM tiles need a `Referer` header. Django's default `Referrer-Policy: same-origin`
+  sends none → blocked tiles. Fix: `SECURE_REFERRER_POLICY =
+  'strict-origin-when-cross-origin'`.
+
+### Useful commands
+
+| Command | What it does |
+|---|---|
+| `docker compose exec web python manage.py makemigrations catalog` | write a migration from the models |
+| `docker compose exec web python manage.py sqlmigrate catalog 0001` | show the SQL of a migration |
+| `docker compose exec web python manage.py migrate` | apply migrations |
+| `docker compose exec web python manage.py import_municipalities` | load the 116 municipalities |
+| `docker compose exec web python manage.py load_sample_nbs` | load the 12 sample NbS |
+| `docker compose exec web python manage.py createsuperuser --noinput` | admin user from `DJANGO_SUPERUSER_*` in `.env` |
+| `docker compose exec web python manage.py shell -v 0 -c "exec(open('scripts/orm_queries.py').read())"` | run the ORM examples |
+
+### Mistakes and corrections
+
+- **Quiz 1:** I said "Python code converted it". Half right: the CSV has degrees (4326)
+  and the database metres (25832), but our Python does no maths. Because the `Point`
+  says `srid=4326` and the field says `srid=25832`, Django puts
+  `ST_Transform(…, 25832)` into the SQL and **PostGIS** converts.
+- **Quiz 2:** I did not know. `NbS.save()` in `catalog/models.py` fills in the
+  municipality with `geom__contains` → `ST_Contains` in SQL. Demo: the SELECT that
+  `save()` sends contains `ST_Contains("geom", ST_Transform(<point>, 25832))`.
+- **Quiz 3:** I said "remove". Wrong: without `full_clean()`, the row is **saved**.
+  Demo: `type='green_rooof'`, `heat=7` were stored with an id (then rolled back). The
+  database has no rule against them; only `full_clean()` (or a form) checks them.
+- Admin map without background: OSM tiles blocked because of the Referrer-Policy.
+- I created a "test" NbS in the admin; it changed the counts (Merano 6) until I
+  deleted it.
+
+### Questions I still have
+
+- How do I send these models as GeoJSON in EPSG:4326? → Milestone 5.
+- Should benefit limits also be database rules (`CheckConstraint`)? → Milestone 8.
 
 ## Milestone 5 — GeoJSON API with djangorestframework-gis
 

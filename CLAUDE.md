@@ -84,7 +84,8 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 4 — GeoDjango models (started 2026-10-27). Milestones 1–3 done and pushed
+- **Milestone:** 4 — GeoDjango models: **done** (2026-10-27). Milestone 5 not started.
+  Milestones 1–3 done and pushed
 - **Milestone 4 plan:** 4.1 app `catalog` + models + migration (`sqlmigrate`) · 4.2 admin
   with map widgets + local admin user · 4.3 `import_municipalities` command (GDAL API) ·
   4.4 sample NbS CSV + `load_sample_nbs` (municipality found by `save()`) · 4.5 M3
@@ -118,15 +119,18 @@ city where Eurac is based as an example in this project.
     `full_clean()` before `save()`, `transaction.atomic`). Result: Merano 5, Lana 2,
     Naturno, Marlengo, Lagundo, Postal, Scena 1 each. School green roof stored as
     25832 (665194, 5170903). `full_clean` demo rejects `green_rooof` and score 7
-  - I added an NbS "test" myself in the admin (id 1, Merano, cost 100) → it is
-    counted in the queries (Merano 6). Not deleted: my data
+  - I added an NbS "test" myself in the admin (id 1, Merano, cost 100); deleted on my
+    request → 12 NbS, total 2,930,000 EUR, Merano 5
   - 4.5 done: `scripts/orm_queries.py` (run with `manage.py shell -v 0 -c
     "exec(open('scripts/orm_queries.py').read())"`): `location__dwithin` + `D(km=…)`,
     `Distance` + `order_by`, `Sum` within 5 km, `geom__dwithin` (12, same as SQL),
     `Centroid`/`PointOnSurface` (Santa Cristina), `Transform(…, 4326)` preview; printed
     SQL shows `ST_DWithin(location, ST_Transform(<point>, 25832), 1000.0)`
-- **Next step:** 4.6 — short recap first, then the Milestone 4 quiz, `LEARNING.md`,
-  push (ask first)
+  - 4.6 done: recap, quiz (1 half right, 2 unknown, 3 wrong) → explained with a demo
+    (bad NbS saved without `full_clean()`, SQL captured, rolled back). Milestone 4 in
+    `LEARNING.md`
+- **Next step:** push Milestone 4 (ask first), then Milestone 5 — GeoJSON API with
+  djangorestframework-gis. **Waiting for my go-ahead**
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
@@ -136,8 +140,14 @@ city where Eurac is based as an example in this project.
   - Milestone 3 quiz (all 3 unknown): same SRID before comparing (`ST_Transform`),
     `ST_DWithin` vs. `ST_Buffer`, `ST_PointOnSurface` vs. `ST_Centroid`. Bring these
     back in Milestone 4 (GeoDjango does the transform; spatial lookups like `dwithin`)
-- **Teaching note:** quizzes on SQL details were hard. Before each quiz, give a short
-  recap of the key ideas; keep questions concrete (with numbers from our own data)
+  - Milestone 4 quiz: **who** transforms (PostGIS, via `ST_Transform` that Django writes
+    because of the SRIDs; not our Python); logic in `save()` (municipality via
+    `geom__contains`); validation layers (`save()` stores anything, `full_clean()` /
+    forms check choices and 0–5)
+- **Teaching note:** quizzes were hard (M3: 0/3, M4: about 0.5/3). Before each quiz,
+  give a short recap; keep questions concrete (numbers from our own data). When
+  explaining an answer, **show the exact code lines and run a small demo** (like the
+  captured-SQL demo in M4); that worked well
 
 ### Environment and conventions
 
