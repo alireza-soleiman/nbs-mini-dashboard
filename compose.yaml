@@ -1,0 +1,36 @@
+# Docker Compose file for the NbS mini-dashboard.
+# For now it runs only the database; Django joins in Milestone 8.
+#
+# Values like ${POSTGRES_USER} come from the .env file next to this file
+# (Compose reads it automatically). See .env.example for the list.
+#
+#   docker compose up -d     start (in the background)
+#   docker compose ps        show status
+#   docker compose down      stop (data is kept in the volume)
+
+name: nbs
+
+services:
+  db:
+    # PostgreSQL 17 with the PostGIS 3.5 extension already installed
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      # ":?" stops Compose with this message if the password is missing
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      # <your PC>:<container>. 127.0.0.1 = reachable only from this PC.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Database files live in a named Docker volume, not in the project folder
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # The container counts as "healthy" once PostgreSQL accepts connections
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

@@ -86,21 +86,33 @@ city where Eurac is based as an example in this project.
 
 - **Milestone:** 1 — Setup (started 2026-10-26)
 - **Done so far:**
-  - Created `CLAUDE.md`, `.claude/settings.json` (Learning output style), `LEARNING.md`
+  - Created `CLAUDE.md`, `.claude/settings.json`, `LEARNING.md`
   - Added the **Git & GitHub** rules to `CLAUDE.md`
+  - Changed teaching rules (2026-10-26): Claude writes all code, I don't write code.
+    Output style switched from Learning to **Explanatory** (2026-10-27)
+  - 1.1 Git initialised on `main` (global `init.defaultBranch main` overrides system `master`)
+  - 1.2 `.gitignore` (Python, venv, Django, secrets `.env*` except `.env.example`,
+    `pgdata/`, `*.dump`, `*.backup`, `data/raw/`) and `.gitattributes` (LF line endings)
+  - 1.3 Public GitHub repo created and set as `origin`:
+    https://github.com/alireza-soleiman/nbs-mini-dashboard (**nothing pushed yet**)
+  - 1.4 PostGIS in Docker via `compose.yaml` (service `db`, image `postgis/postgis:17-3.5`,
+    named volume `nbs_pgdata`, healthcheck). Secrets in `.env` (ignored, random password),
+    template in `.env.example`. Reachable at `127.0.0.1:5433`, database/user `nbs`.
+    Verified: PostgreSQL 17.5, PostGIS 3.5.2, first `ST_MakePoint` query works
 - **Tools checked (2026-10-26):** Git 2.56 (user name + email set), GitHub CLI 2.103 logged
   in as `alireza-soleiman` (HTTPS, `repo` scope), Git Credential Manager handles pushes.
-  Docker 29.2 installed, but Docker Desktop was **not running**. Python 3.11.9 (Microsoft
-  Store build). **No GDAL/GEOS/PROJ yet** (`C:\OSGeo4W` exists but is an empty leftover).
+  Docker client 29.2, engine 29.9. **Docker Desktop does not auto-start**: start it before
+  `docker compose up -d`. Python 3.11.9 (Microsoft Store build). **No GDAL/GEOS/PROJ yet**
+  (`C:\OSGeo4W` exists but is an empty leftover). **Port 5432 is taken** by a local Windows
+  PostgreSQL, so our PostGIS uses host port 5433.
 - **Milestone 1 plan:** 1.1 default branch `main` + `git init` · 1.2 `.gitignore` + first
   commit · 1.3 GitHub repo + `origin` · 1.4 PostGIS in Docker · 1.5 venv + Django ·
   1.6 GDAL/GEOS/PROJ for GeoDjango · 1.7 Django project on PostGIS, secrets from env vars ·
   1.8 verify, commit, push, quiz, `LEARNING.md`
-- **Git in this folder:** initialised on branch `main` (step 1.1 done). Global
-  `init.defaultBranch` is now `main` (overrides the system-level `master`). No commits, no
-  remote yet
-- **Next step:** 1.2 — `.gitignore`: "Secrets" section done (worked example by Claude);
-  I write the "Data" section (my TODO), test it with `git check-ignore -v -n`, then the
-  first commit
-- **Open questions / blockers:** how to install GDAL for GeoDjango on Windows (OSGeo4W vs.
-  running Django in Docker); decide at step 1.6
+- **Data folders:** `data/raw/` = big downloads (ignored), `data/sample/` = small files (committed)
+- **Next step:** 1.5 — Python virtual environment + Django
+- **Open questions / blockers:**
+  - how to install GDAL for GeoDjango on Windows (OSGeo4W vs. running Django in Docker);
+    decide at step 1.6
+  - before the first push: commits use my personal Gmail as author email, which becomes
+    public on GitHub. Keep it, or switch to the GitHub `noreply` address?
