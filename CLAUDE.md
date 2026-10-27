@@ -88,11 +88,19 @@ city where Eurac is based as an example in this project.
 ## Current status
 
 - **Phase 1 (Milestones 1–7): done and pushed** (2026-10-26 → 2026-10-27)
-- **Phase 2 (richer dashboard, my 5 requests): done** (2026-10-27): polygons/lines as
-  NbS, click-to-zoom, realistic sample data, overview page, modern sidebar.
-  Guide, README and `LEARNING.md` updated
-- **Next step:** push Phase 2 (ask first). Then **Phase 3** (Milestone 8, handover
-  quality) — **waiting for my go-ahead**. Ideas in `LEARNING.md`
+- **Phase 2 (richer dashboard, my 5 requests): done and pushed** (2026-10-27):
+  polygons/lines as NbS, click-to-zoom, realistic sample data, overview page, modern
+  sidebar. Guide, README and `LEARNING.md` updated
+- **LinkedIn (2026-10-27):** post text and presentation talk drafted in chat (not in the
+  repo; don't name Eurac/CRESCITA without their OK). Demo video + 4 screenshots made by
+  `scripts/record_demo.py` (Playwright + headless Chromium + ffmpeg; 45 s, 1920×1080
+  MP4, captions and pointer injected) → `linkedin/` (ignored by Git). The tools were
+  installed in `%TEMP%\nbsvid` (short path: the scratchpad path broke Windows' 260-char
+  limit) and **deleted after my OK**; to re-record, install them again (script header).
+  The recording found a phone bug (results hidden behind the bottom sheet) → fixed.
+  Keep the excluded city out of the pictures: the phone screenshot zooms to Merano (z 12)
+- **Next step:** **Phase 3** (Milestone 8, handover quality) — **waiting for my
+  go-ahead**. Ideas in `LEARNING.md`; Playwright end-to-end tests are a good candidate
 - **Open questions / blockers:** the old `data/sample/nbs_sample.csv` is no longer in Git
   but still on disk, because another program (probably Excel) had it open → delete it
   after closing that program
