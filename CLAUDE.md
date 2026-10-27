@@ -100,7 +100,16 @@ city where Eurac is based as an example in this project.
   - 3.3 done: `sql/02_projections.sql`. Merano area: 25.98 km² (25832), 0.003054 sq
     degrees (4326), 25.99 km² (geography), 55.14 km² (3857, ×2.12). 1° east = 76.5 km,
     1° north = 111.2 km
-- **Next step:** 3.4 — spatial relationships
+  - 3.4 done: `sql/03_relationships.sql`. Merano has 9 neighbours (`ST_Touches`;
+    `ST_Intersects` = 10 incl. itself); point in polygon with sites given in lon/lat →
+    `ST_Transform` to 25832 first (green roof → Merano, rain garden → Lana, river
+    restoration → Naturno); centroid outside its polygon: Santa Cristina Valgardena
+    (`ST_PointOnSurface` is always inside)
+  - 3.5 done: `sql/04_buffers_distance.sql`. Nearest with `<->`; 23 municipalities within
+    10 km (`ST_DWithin`); 500 m buffer: 25.98 → 42.25 km²; buffer vs. `ST_DWithin`
+    give the same 12; `EXPLAIN ANALYZE`: index = bounding-box test (`&&`, 26 candidates)
+    then exact filter (23); without index = exact test on all 116
+- **Next step:** 3.6 — Milestone 3 quiz, `LEARNING.md`, push (ask first)
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
