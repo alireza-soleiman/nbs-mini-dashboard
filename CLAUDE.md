@@ -59,10 +59,13 @@ city where Eurac is based as an example in this project.
   key code and explain it line by line.
 - **Small steps, one concept at a time.**
 - **Explain every command before running it** (what it does, what each flag means).
-- **After each milestone:** ask me 2–3 short questions to check I understood,
-  and remind me to **commit to Git**.
-- **Never move to the next milestone until I say so.**
-- After each milestone, help me write what I learned in `LEARNING.md`.
+- **No quizzes** (my decision, 2026-10-27: they did not help me). Instead, after each
+  milestone or phase explain **how to work with the project**: the features, where the
+  data comes from and how it reaches the map, how to change it for different needs,
+  and how to test every feature (a checklist I can follow myself).
+- **Phases:** Phase 1 = a working dashboard (Milestones 5–7) + a user guide. Within a
+  phase, go on from milestone to milestone; between phases, wait for my go-ahead.
+- Keep `LEARNING.md` short: what was built and where to read more (the guide).
 - Keep the **Current status** section below up to date.
 
 ## Git & GitHub
@@ -84,66 +87,49 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 5 — GeoJSON API (started 2026-10-27). Milestones 1–4 done and pushed
-- **Milestone 5 plan:** 5.1 install DRF + DRF-gis · 5.2 `/api/nbs/` GeoJSON in 4326 ·
-  5.3 filters (`type`, `municipality`, `near` + `radius`) · 5.4 `/api/municipalities/`
-  + `/api/nbs-types/` · 5.5 API tests · 5.6 recap, quiz, `LEARNING.md`, push (ask first)
-- **Milestone 5 progress:**
-  - 5.1 done: `requirements.txt` + `djangorestframework` 3.16.1, `djangorestframework-gis`
-    1.3.0 (brought `django-filter` 26.2); image rebuilt (GDAL layer cached);
-    `rest_framework`, `rest_framework_gis` in `INSTALLED_APPS`
-  - 5.2 done: `catalog/serializers.py` `NbSSerializer(GeoFeatureModelSerializer)`:
-    `geometry = GeometryField(source='location_4326', precision=6)`, `nbs_type_label`,
-    `municipality` (name), `geo_field = 'geometry'`. `catalog/views.py`
-    `NbSViewSet(ReadOnlyModelViewSet)`: `select_related('municipality')` +
-    `annotate(location_4326=Transform('location', 4326))`. `catalog/urls.py`
-    `DefaultRouter` → `/api/`, `/api/nbs/`, `/api/nbs/<id>/`. Result: 12 features,
-    **1 SQL query** (13 without `select_related` = N+1), school roof `[11.1597, 46.6713]`
-  - 5.3 done: filters in `get_queryset`: `?type=` (repeatable, unknown → 400),
-    `?municipality=<ISTAT>`, `?near=lon,lat&radius=m` (`location__dwithin`, bad → 400).
-    Merano 5, within 1 km 3, green roofs in Lana (`021041`) 1. First `near` request
-    does 1 extra query on `spatial_ref_sys` (units of 25832), then cached
-  - Browsable API at http://localhost:8000/api/nbs/ shows the view docstring as docs
-    (title "Nb S List" is cosmetic, from the class name)
-  - 5.4 done: `MunicipalitySerializer` (geometry from `geom_4326`, precision 5,
-    `id_field = 'istat_code'`, `area_km2` from `Area()` in 25832, `nbs_count`) +
-    `MunicipalityViewSet` (`lookup_field = 'istat_code'` → `/api/municipalities/021051/`;
-    `Count('nbs')` makes Django `GROUP BY id, <geom>, <area>`: fine for 116 rows).
-    `@api_view` `nbs_types` → `/api/nbs-types/` (`value`, `label`, `count` for all 9
-    types). 116 features, 328 KB, 1 query, ~250 ms
-  - **Found and fixed:** Aldino/Aldein had an extra 2.139 km² part (64.98 instead of
-    62.84 km²) because I changed its Geom in the admin at 10:31 (LogEntry "Changed
-    Geom", clicks on the MultiPolygon widget draw new parts). Restored by re-running
-    `import_municipalities` (province 7,399.87 km² again; NbS links kept, because
-    `update_or_create` keeps the ids)
-  - **Admin lock:** `MunicipalityAdmin` uses `ReadOnlyOSMWidget`
-    (`catalog/templates/catalog/readonly_osm.html` switches off the OpenLayers draw +
-    modify tools) and sets `field.disabled = True` for `geom` in
-    `formfield_for_dbfield` (server ignores posted geometry; the real protection);
-    `has_add_permission` → False. Names stay editable
-  - 5.5 done: `catalog/tests.py`: `CatalogApiTests` (10: GeoJSON + lon/lat round trip,
-    `assertNumQueries(1)`, municipality from location, filters, 400s, municipality
-    detail + area, nbs-types) + `MunicipalityAdminTests` (3: map without tools, posted
-    geometry ignored, add → 403). Run: `docker compose exec web python manage.py test
-    catalog` → 13 OK. Checked the lock test **fails** without `disabled` (mock patch)
-- **Next step:** 5.6 — recap + quiz (asked), then `LEARNING.md`, push (ask first)
+- **Phase 1 (Milestones 1–7): done** (2026-10-26 → 2026-10-27). Working dashboard at
+  http://localhost:8000 + user guide `docs/GUIDE.md` + `README.md`
+- **Next step:** push Phase 1 (ask first). Then **Phase 2** (Milestone 8, handover
+  quality) — **waiting for my go-ahead**. Ideas in `LEARNING.md`
 - **Open questions / blockers:** none
-- **Weak spots to revisit:**
-  - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
-    in `.dockerignore`
-  - Milestone 2 quiz: an EPSG code is a coordinate system (units/projection), **not**
-    an area. Practised in Milestone 3 (same polygon in 4 CRSs)
-  - Milestone 3 quiz (all 3 unknown): same SRID before comparing (`ST_Transform`),
-    `ST_DWithin` vs. `ST_Buffer`, `ST_PointOnSurface` vs. `ST_Centroid`. Bring these
-    back in Milestone 4 (GeoDjango does the transform; spatial lookups like `dwithin`)
-  - Milestone 4 quiz: **who** transforms (PostGIS, via `ST_Transform` that Django writes
-    because of the SRIDs; not our Python); logic in `save()` (municipality via
-    `geom__contains`); validation layers (`save()` stores anything, `full_clean()` /
-    forms check choices and 0–5)
-- **Teaching note:** quizzes were hard (M3: 0/3, M4: about 0.5/3). Before each quiz,
-  give a short recap; keep questions concrete (numbers from our own data). When
-  explaining an answer, **show the exact code lines and run a small demo** (like the
-  captured-SQL demo in M4); that worked well
+- **Topics that were hard for me** (explain with code + a small demo when they come
+  up): Docker networking (`localhost` inside a container); EPSG code = coordinate
+  system, not an area; same SRID before comparing; who transforms (PostGIS via
+  `ST_Transform` that Django writes); logic in `save()`; validation layers (`save()` vs.
+  `full_clean()`/forms). Explaining with **exact code lines + a live demo** worked well
+
+### Phase 1 log: Milestones 5–7 (done 2026-10-27)
+
+- **Decision (2026-10-27): no more quizzes**; instead explain features, data flow, how
+  to change and test things (→ `docs/GUIDE.md`)
+- **API** (`catalog/`): DRF 3.16.1 + DRF-gis 1.3.0. `NbSSerializer`/`MunicipalitySerializer`
+  (`GeoFeatureModelSerializer`, geometry from a `Transform(…, 4326)` annotation,
+  precision 6/5; municipality `id_field`/`lookup_field` = `istat_code`, `area_km2`,
+  `nbs_count`). `NbSViewSet` (`select_related`: 1 query instead of 13; filters `type`
+  (repeatable), `municipality`, `near`+`radius`; bad values → 400). `nbs_types`
+  (`@api_view`). URLs: `/api/`, `/api/nbs/`, `/api/municipalities/<istat_code>/`,
+  `/api/nbs-types/`
+- **Aldino accident:** an admin click added a 2.14 km² part (LogEntry 10:31) → restored
+  with `import_municipalities`; boundaries now read-only in the admin
+  (`ReadOnlyOSMWidget` template switches off draw/modify; `field.disabled = True`;
+  no add)
+- **Dashboard** (`dashboard/` app, no models): `TemplateView` at `/`, API URLs in
+  `<body data-…>` via `{% url %}`. JS modules: `api.js` (`getJSON`), `ranking.js`
+  (`CRITERIA`, `rankNbs`: weighted sum, benefits /5, cost min–max over shown NbS,
+  weights 0–10 default 5, `parts` per criterion), `dashboard.js` (map, outlines, type
+  checkboxes + municipality dropdown → server filters, sliders → browser ranking,
+  divIcon markers coloured by 4 score classes `#86b6ef/#5598e7/#256abf/#104281`
+  (validated ordinal ramp), rank 1–3 on markers, list, legend, popups with points,
+  `escapeHtml`, `window.dashboard` for the console). Responsive (stacked < 800 px),
+  dark panel in dark mode
+- **Verified:** JS ranking = independent Python calculation (equal weights: 79, 75, 71
+  … 50; flood only: top three 100); filter requests; popup points; phone layout;
+  15 Django tests OK (`manage.py test`)
+- Removed the Milestone 2 prototype (`frontend/`, `scripts/build_municipalities_geojson.sh`;
+  still in Git history); ISTAT URL + SHA256 now in `import_municipalities.py`.
+  `.claude/launch.json`: "dashboard" (attach to http://localhost:8000)
+- Gotcha: a new app's `templates/` folder created after the dev server started →
+  `TemplateDoesNotExist` → `docker compose restart web`
 
 ### Environment and conventions
 
@@ -153,7 +139,7 @@ city where Eurac is based as an example in this project.
   Python 3.11.9 on Windows (Microsoft Store build; used only for small helpers like
   `http.server`, not for Django). No GDAL on Windows, and none needed.
 - **Ports:** 5432 is taken by a local Windows PostgreSQL → our PostGIS is on host port
-  **5433**. Django: **8000**. Static map server (Milestone 2): **8080**.
+  **5433**. Django (dashboard, API, admin): **8000**.
 - **SQL files:** `sql/` is mounted read-only into `db` at `/sql` →
   `docker compose exec db psql -U nbs -d nbs -f /sql/<file>.sql`. The `tiger` schema
   in the database is the PostGIS image's US geocoder: ignore it.
@@ -166,8 +152,7 @@ city where Eurac is based as an example in this project.
   `153937783+alireza-soleiman@users.noreply.github.com` (`git config --local`;
   global stays Gmail).
 - **Data folders:** `data/raw/` = big downloads (ignored) · `data/sample/` = small sample
-  data, e.g. NbS (committed) · `frontend/data/` = small display files for the map,
-  EPSG:4326 (committed)
+  data, e.g. NbS (committed). The map gets all data from the API (no static files)
 
 ### Milestone 4 log (done 2026-10-27)
 

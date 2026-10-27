@@ -390,18 +390,37 @@ login data in `.env`). Every Milestone 3 SQL question now also works as Python.
 - How do I send these models as GeoJSON in EPSG:4326? → Milestone 5.
 - Should benefit limits also be database rules (`CheckConstraint`)? → Milestone 8.
 
-## Milestone 5 — GeoJSON API with djangorestframework-gis
+## Milestones 5–7 — Phase 1: API, connected map, ranking
 
-_Not started yet._
+_Done: 2026-10-27. From here on no quizzes; the full explanation of how everything
+works, how to change it and how to test it is in [docs/GUIDE.md](docs/GUIDE.md)._
 
-## Milestone 6 — Connect Leaflet to the API (filters)
+**Milestone 5 — API** (`catalog/serializers.py`, `views.py`, `urls.py`)
+- `/api/nbs/`, `/api/municipalities/`, `/api/nbs-types/`: GeoJSON in EPSG:4326, made
+  from metres with `Transform()` in SQL. Filters `?type=`, `?municipality=`,
+  `?near=lon,lat&radius=m`; wrong values → error 400.
+- Three files, three jobs: URL (where) → view (which rows) → serializer (what shape).
+- `select_related` turned 13 SQL queries into 1 (the N+1 problem).
+- 13 automated tests in a separate test database (`manage.py test`).
+- An accidental click in the admin had changed Aldino's boundary → restored from ISTAT,
+  boundaries are now read-only in the admin (server-side `disabled` + no drawing tools).
 
-_Not started yet._
+**Milestone 6 — the map uses the API** (`dashboard/` app)
+- Django serves the page at `/`; the API addresses are written into the page with
+  `{% url %}`, so the JavaScript does not hard-code them.
+- Filters ask the server (`/api/nbs/?type=…&municipality=…`); the map zooms to the
+  results. The old static GeoJSON from Milestone 2 is gone (still in the Git history).
 
-## Milestone 7 — Multi-criteria ranking (weight sliders)
+**Milestone 7 — ranking with weights** (`ranking.js`)
+- Weighted sum: benefits /5, cost min–max (cheapest = 1), weights 0–10, score 0–100.
+  Calculated in the browser, so the sliders react instantly.
+- The popup shows the points per criterion, so every score can be explained.
+- Score colours: 4 classes of one blue hue (light → dark), checked with a palette
+  validator; numbers 1–3 on the top three markers.
+- Checked the JavaScript ranking against an independent Python calculation: identical.
 
-_Not started yet._
+## Phase 2 — Handover quality (Milestone 8)
 
-## Milestone 8 — Handover quality (README, Docker Compose, docs)
-
-_Not started yet._
+_Not started yet._ Ideas: production settings (no `runserver`, `DEBUG` off), database
+`CheckConstraint` for the 0–5 scores, secret scanning before commits, JavaScript tests
+for `ranking.js`.
