@@ -105,7 +105,22 @@ city where Eurac is based as an example in this project.
     does 1 extra query on `spatial_ref_sys` (units of 25832), then cached
   - Browsable API at http://localhost:8000/api/nbs/ shows the view docstring as docs
     (title "Nb S List" is cosmetic, from the class name)
-- **Next step:** 5.4 — `/api/municipalities/` and `/api/nbs-types/`
+  - 5.4 done: `MunicipalitySerializer` (geometry from `geom_4326`, precision 5,
+    `id_field = 'istat_code'`, `area_km2` from `Area()` in 25832, `nbs_count`) +
+    `MunicipalityViewSet` (`lookup_field = 'istat_code'` → `/api/municipalities/021051/`;
+    `Count('nbs')` makes Django `GROUP BY id, <geom>, <area>`: fine for 116 rows).
+    `@api_view` `nbs_types` → `/api/nbs-types/` (`value`, `label`, `count` for all 9
+    types). 116 features, 328 KB, 1 query, ~250 ms
+  - **Found:** Aldino/Aldein has an extra 2.139 km² part (64.98 instead of 62.84 km²)
+    → I changed its Geom in the admin at 10:31 (LogEntry "Changed Geom"), probably by
+    clicking on the MultiPolygon map widget. Raw ISTAT feature is fine (1 ring).
+    Fix = re-run `import_municipalities`; also consider making municipality
+    geometries read-only in the admin
+  - 5.5 done: `catalog/tests.py` (`APITestCase`, 10 tests: GeoJSON + lon/lat round
+    trip, `assertNumQueries(1)`, municipality from location, type/municipality/near
+    filters, 400s, municipality detail by ISTAT code + area, nbs-types). Run:
+    `docker compose exec web python manage.py test catalog` → 10 OK (test DB `test_nbs`)
+- **Next step:** fix Aldino (my decision), then 5.6 — recap, quiz, `LEARNING.md`, push
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
