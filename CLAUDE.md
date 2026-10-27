@@ -84,7 +84,8 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 3 — PostGIS in SQL (started 2026-10-27). Milestones 1–2 done and pushed
+- **Milestone:** 3 — PostGIS in SQL: **done** (2026-10-27). Milestone 4 not started.
+  Milestones 1–2 done and pushed
 - **Milestone 3 plan:** 3.1 load municipalities into PostGIS (EPSG:25832) · 3.2 explore +
   areas · 3.3 projection test (same polygon in 4 CRSs) · 3.4 relationships (`ST_Touches`,
   `ST_Within`, centroid vs. point on surface) · 3.5 buffers + distances (`ST_Buffer`,
@@ -109,13 +110,24 @@ city where Eurac is based as an example in this project.
     10 km (`ST_DWithin`); 500 m buffer: 25.98 → 42.25 km²; buffer vs. `ST_DWithin`
     give the same 12; `EXPLAIN ANALYZE`: index = bounding-box test (`&&`, 26 candidates)
     then exact filter (23); without index = exact test on all 116
-- **Next step:** 3.6 — Milestone 3 quiz, `LEARNING.md`, push (ask first)
+  - 3.6 done: quiz (I did not know the answers → explained, with a demo: lon/lat vs.
+    25832 without `ST_Transform` gives **0 rows, no error** inside `WHERE`; "mixed SRID"
+    error only when called directly). Milestone 3 written in `LEARNING.md`
+  - The browser shows nothing new in Milestone 3: expected (map still reads the static
+    GeoJSON; DB → map connection comes in M5–M6). QGIS can show PostGIS data directly
+- **Next step:** push Milestone 3 (ask first), then Milestone 4 — GeoDjango models.
+  **Waiting for my go-ahead**
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
     in `.dockerignore`
   - Milestone 2 quiz: an EPSG code is a coordinate system (units/projection), **not**
-    an area. Practise this in Milestone 3 (load data in metres, compare with degrees)
+    an area. Practised in Milestone 3 (same polygon in 4 CRSs)
+  - Milestone 3 quiz (all 3 unknown): same SRID before comparing (`ST_Transform`),
+    `ST_DWithin` vs. `ST_Buffer`, `ST_PointOnSurface` vs. `ST_Centroid`. Bring these
+    back in Milestone 4 (GeoDjango does the transform; spatial lookups like `dwithin`)
+- **Teaching note:** quizzes on SQL details were hard. Before each quiz, give a short
+  recap of the key ideas; keep questions concrete (with numbers from our own data)
 
 ### Environment and conventions
 

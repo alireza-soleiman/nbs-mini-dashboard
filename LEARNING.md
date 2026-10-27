@@ -198,7 +198,95 @@ Data flow: ISTAT zip (all of Italy, metres) → `ogr2ogr` script → small GeoJS
 
 ## Milestone 3 — PostGIS in SQL (spatial queries, projections)
 
-_Not started yet._
+_Done: 2026-10-27._
+
+### The big picture
+
+I worked on the **bottom layer alone**: the 116 municipalities are now a PostGIS table
+in **metres** (EPSG:25832), and I asked spatial questions in plain SQL. Nothing changed
+in the browser, and that is expected: the map still reads the static GeoJSON from
+Milestone 2. Django (M4) and the API (M5) will connect the database to the map (M6).
+To look at PostGIS data directly, I can use QGIS (host `127.0.0.1`, port `5433`).
+
+### Key concepts
+
+**Loading data**
+- `ogr2ogr -f PostgreSQL PG: …` loads a shapefile into a table.
+  `-t_srs EPSG:25832` = metres, `-nlt PROMOTE_TO_MULTI` = all shapes as MultiPolygon
+  (Lagundo and Termeno really have 2 parts), `SPATIAL_INDEX=GIST` = spatial index.
+- The geometry column type includes the CRS: `geometry(MultiPolygon,25832)`. PostGIS
+  refuses other types or SRIDs in it.
+- Shapefile number fields have old fixed sizes (`numeric(18,11)`) that can overflow →
+  `-lco PRECISION=NO`.
+- The password goes to GDAL through the standard `PG*` variables (`PGPASSWORD` …),
+  not on the command line.
+
+**Projections in practice (the same Merano polygon)**
+
+| CRS | Area | |
+|---|---|---|
+| EPSG:25832 (UTM, metres) | 25.98 km² | ✅ correct |
+| EPSG:4326 (degrees) | 0.003054 "square degrees" | ❌ meaningless |
+| `geography` (degrees on the real Earth) | 25.99 km² | ✅ correct |
+| EPSG:3857 (Web Mercator, Leaflet) | 55.14 km² | ❌ 2.12× too big |
+
+- Degrees are not a distance: at Merano 1° east = 76.5 km, 1° north = 111.2 km.
+- Rule: **draw in 3857 (Leaflet does it), calculate in 25832 or `geography`.**
+- `ST_Transform(geom, srid)` converts between CRSs. `ST_SetSRID` only puts a label on
+  the numbers; it does NOT move the point.
+
+**Spatial relationships** (yes/no questions)
+- `ST_Intersects` = share any point · `ST_Touches` = share only boundary (neighbours) ·
+  `ST_Within(a, b)` = a completely inside b · `ST_Contains(b, a)` = the mirror.
+- A **spatial join** is a normal `JOIN` with a geometry test as the condition:
+  `JOIN … ON ST_Touches(m.geom, n.geom)`.
+- Both geometries must have the **same SRID**. A point from the map (lon/lat) must be
+  transformed first: `ST_Transform(ST_SetSRID(ST_MakePoint(lon, lat), 4326), 25832)`.
+- `ST_Centroid` (centre of mass) can be **outside** a curved polygon (Santa Cristina
+  Valgardena). `ST_PointOnSurface` is always inside → use it for labels and markers.
+
+**Distances and buffers** (units = units of the CRS, here metres)
+- `ST_Distance(a, b)`, `ST_DWithin(a, b, d)`, `ST_Buffer(g, d)`, and `a <-> b` for
+  "nearest first" ordering.
+- `ST_Buffer` builds a new polygon (use it to see/store the shape). `ST_DWithin` only
+  answers yes/no and can use the index (use it for filtering). Same result, faster.
+
+**Spatial index (GiST)**
+- Works in two steps, visible with `EXPLAIN ANALYZE`:
+  1. `Index Cond: geom && …` = fast test on **bounding boxes** (rectangles) → 26 candidates
+  2. `Filter: st_dwithin(…)` = exact test only on those candidates → 23 results
+- Without the index, the exact test runs on all 116 rows.
+
+### Useful commands
+
+| Command | What it does |
+|---|---|
+| `docker compose exec web sh scripts/load_municipalities_postgis.sh` | (re)load the table from the ISTAT zip |
+| `docker compose exec db psql -U nbs -d nbs -f /sql/<file>.sql` | run a SQL file (`sql/` is mounted at `/sql`, read-only) |
+| `docker compose exec db psql -U nbs -d nbs -c "\d istat_municipalities"` | show columns and indexes of a table |
+| `EXPLAIN ANALYZE SELECT …` | show how PostgreSQL ran a query (index or not) |
+
+### Mistakes and corrections
+
+- **Quiz:** I did not know the three answers. The explanations:
+  1. *Why `ST_Transform` before `ST_Within`?* The table is in metres (25832), the sites
+     in degrees (4326). Read as metres, (11.1597, 46.6713) is a point 11 m east and 46 m
+     north of the UTM grid origin, which is in the sea near the equator, off West Africa
+     (lon 4.51, lat 0.0004). Inside a `WHERE` the mistake gives **0 rows and no error**
+     (the index throws everything out first); called directly, PostGIS stops with
+     "mixed SRID geometries".
+  2. *Why `ST_DWithin` and not `ST_Buffer` + `ST_Intersects`?* No new polygon has to be
+     built, and the index can be used. Same answer, less work.
+  3. *Centroid or point on surface for a label?* `ST_PointOnSurface`, because it is
+     always inside the polygon; a centroid can fall outside.
+- The first load failed with "numeric field overflow" → `-lco PRECISION=NO`.
+- I (Claude) expected PostgreSQL to skip the index for only 116 rows. `EXPLAIN` showed
+  it used the index anyway: check with `EXPLAIN`, don't guess.
+
+### Questions I still have
+
+- Should the Django models store geometry in 4326 or in 25832? → Milestone 4.
+- How do query results become GeoJSON for the map? → Milestone 5.
 
 ## Milestone 4 — GeoDjango models + import script
 
