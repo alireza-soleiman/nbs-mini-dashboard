@@ -84,39 +84,36 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 3 — PostGIS in SQL: **done** (2026-10-27). Milestone 4 not started.
-  Milestones 1–2 done and pushed
-- **Milestone 3 plan:** 3.1 load municipalities into PostGIS (EPSG:25832) · 3.2 explore +
-  areas · 3.3 projection test (same polygon in 4 CRSs) · 3.4 relationships (`ST_Touches`,
-  `ST_Within`, centroid vs. point on surface) · 3.5 buffers + distances (`ST_Buffer`,
-  `ST_DWithin`) + spatial index (`EXPLAIN`) · 3.6 quiz, `LEARNING.md`, push (ask first)
-- **Milestone 3 progress:**
-  - 3.1 done: `sql/` mounted read-only into `db` at `/sql`.
-    `scripts/load_municipalities_postgis.sh` (run in `web`; password via `PG*` env vars)
-    → table `istat_municipalities` (`id`, `istat_code`, `name`, `name_alt`,
-    `istat_area_m2`, `geom geometry(MultiPolygon,25832)`, GiST index), 116 rows.
-    Needed `-lco PRECISION=NO` (shapefile `numeric(18,11)` overflowed)
-  - 3.2 done: `sql/01_explore.sql`. Province total 7,400 km²; Merano 25.98 km² (= ISTAT);
-    multipart: Lagundo, Termeno
-  - 3.3 done: `sql/02_projections.sql`. Merano area: 25.98 km² (25832), 0.003054 sq
-    degrees (4326), 25.99 km² (geography), 55.14 km² (3857, ×2.12). 1° east = 76.5 km,
-    1° north = 111.2 km
-  - 3.4 done: `sql/03_relationships.sql`. Merano has 9 neighbours (`ST_Touches`;
-    `ST_Intersects` = 10 incl. itself); point in polygon with sites given in lon/lat →
-    `ST_Transform` to 25832 first (green roof → Merano, rain garden → Lana, river
-    restoration → Naturno); centroid outside its polygon: Santa Cristina Valgardena
-    (`ST_PointOnSurface` is always inside)
-  - 3.5 done: `sql/04_buffers_distance.sql`. Nearest with `<->`; 23 municipalities within
-    10 km (`ST_DWithin`); 500 m buffer: 25.98 → 42.25 km²; buffer vs. `ST_DWithin`
-    give the same 12; `EXPLAIN ANALYZE`: index = bounding-box test (`&&`, 26 candidates)
-    then exact filter (23); without index = exact test on all 116
-  - 3.6 done: quiz (I did not know the answers → explained, with a demo: lon/lat vs.
-    25832 without `ST_Transform` gives **0 rows, no error** inside `WHERE`; "mixed SRID"
-    error only when called directly). Milestone 3 written in `LEARNING.md`
-  - The browser shows nothing new in Milestone 3: expected (map still reads the static
-    GeoJSON; DB → map connection comes in M5–M6). QGIS can show PostGIS data directly
-- **Next step:** push Milestone 3 (ask first), then Milestone 4 — GeoDjango models.
-  **Waiting for my go-ahead**
+- **Milestone:** 4 — GeoDjango models (started 2026-10-27). Milestones 1–3 done and pushed
+- **Milestone 4 plan:** 4.1 app `catalog` + models + migration (`sqlmigrate`) · 4.2 admin
+  with map widgets + local admin user · 4.3 `import_municipalities` command (GDAL API) ·
+  4.4 sample NbS CSV + `load_sample_nbs` (municipality found by `save()`) · 4.5 M3
+  queries in the ORM (`dwithin`, `Distance`, `Area`, `PointOnSurface`) · 4.6 recap
+  first, then quiz, `LEARNING.md`, push (ask first)
+- **Decision (2026-10-27): geometries stored in EPSG:25832** (`catalog.models.SRID`),
+  so areas/distances are in metres. The API transforms to 4326 for the map (M5)
+- **Milestone 4 progress:**
+  - 4.1 done: app `catalog` in `INSTALLED_APPS`. `Municipality` (`istat_code` unique,
+    `name`, `name_alt`, `geom` MultiPolygon 25832). `NbS` (`name`, `nbs_type`
+    TextChoices with 9 types, `description`, `cost_eur`, `benefit_heat`, `benefit_flood`,
+    `benefit_biodiversity`, `benefit_wellbeing` (0–5, validator only, no DB check),
+    `location` Point 25832, `municipality` FK filled in `save()` with
+    `geom__contains`). Migration `0001_initial`: Django creates the GiST indexes itself
+  - 4.2 done: `GISModelAdmin` for both (OpenLayers 7.2.2 widget from jsdelivr, OSM
+    tiles, NbS map opens on Merano). Admin user `admin`; username, email and password in
+    `.env` (`DJANGO_SUPERUSER_*`, placeholders in `.env.example`), created with
+    `createsuperuser --noinput` → log in at http://localhost:8000/admin/
+  - **Fix:** OSM tiles were "blocked" in the admin because Django's default
+    `Referrer-Policy: same-origin` sends no Referer → `SECURE_REFERRER_POLICY =
+    'strict-origin-when-cross-origin'` in `settings.py`
+  - 4.3 done: `python manage.py import_municipalities` (GDAL `DataSource` on the ISTAT
+    zip, `transform(25832)`, Polygon → MultiPolygon, `update_or_create` by ISTAT code,
+    `transaction.atomic`) → 116 created; re-run = 116 updated. ORM check: Merano
+    `Area()` 25.98 km², 9 neighbours (`geom__touches`), lon/lat point →
+    `geom__contains` adds `ST_Transform(…, 25832)` automatically
+  - Old M3 table `istat_municipalities` still exists (SQL playground); Django uses
+    `catalog_municipality`
+- **Next step:** 4.4 — sample NbS data around Merano + loader
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
@@ -142,13 +139,30 @@ city where Eurac is based as an example in this project.
   `docker compose exec db psql -U nbs -d nbs -f /sql/<file>.sql`. The `tiger` schema
   in the database is the PostGIS image's US geocoder: ignore it.
 - **Browser checks:** Windows display scaling is 125 %, so screenshot pixels = CSS
-  pixels × 1.25. Git Bash: use `MSYS_NO_PATHCONV=1` for paths starting with `/`.
+  pixels × 1.25. The browser pane's screenshots show OpenLayers canvases (admin map) as
+  black: check canvas pixels with JS instead. Git Bash: use `MSYS_NO_PATHCONV=1` for
+  paths starting with `/`. Multi-line Django shell code: Git Bash +
+  `manage.py shell -v 0 -c "$(cat <<'EOF' … EOF)"`.
 - **Commit email for this repo:** GitHub noreply
   `153937783+alireza-soleiman@users.noreply.github.com` (`git config --local`;
   global stays Gmail).
 - **Data folders:** `data/raw/` = big downloads (ignored) · `data/sample/` = small sample
   data, e.g. NbS (committed) · `frontend/data/` = small display files for the map,
   EPSG:4326 (committed)
+
+### Milestone 3 log (done 2026-10-27)
+
+- `sql/` mounted read-only into `db` at `/sql`. `scripts/load_municipalities_postgis.sh`
+  → table `istat_municipalities` (116 rows, MultiPolygon 25832, GiST). Needed
+  `-lco PRECISION=NO` (shapefile `numeric(18,11)` overflowed)
+- `sql/01_explore.sql` (province 7,400 km², Merano 25.98 km², multipart: Lagundo,
+  Termeno) · `02_projections.sql` (Merano: 25.98 km² in 25832, 0.003054 sq degrees in
+  4326, 25.99 km² geography, 55.14 km² in 3857) · `03_relationships.sql` (9 neighbours,
+  point in polygon needs `ST_Transform`, centroid outside: Santa Cristina Valgardena) ·
+  `04_buffers_distance.sql` (`<->`, `ST_DWithin`, `ST_Buffer`, `EXPLAIN ANALYZE`: index =
+  bounding-box test then exact filter)
+- Quiz: all 3 unknown → explained. Demo: mixed SRIDs inside `WHERE` give **0 rows, no
+  error**
 
 ### Milestone 2 log (done 2026-10-27)
 
