@@ -1,0 +1,15 @@
+# Files Docker must NOT copy into the image (keeps it small and free of secrets)
+.git
+.env
+.env.*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+pgdata/
+*.dump
+*.backup
+data/raw/
+.claude/
+.vscode/
+.idea/

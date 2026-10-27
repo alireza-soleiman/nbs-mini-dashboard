@@ -1,12 +1,14 @@
 # Docker Compose file for the NbS mini-dashboard.
-# For now it runs only the database; Django joins in Milestone 8.
+# Two services: db (PostgreSQL + PostGIS) and web (Django + GeoDjango).
 #
 # Values like ${POSTGRES_USER} come from the .env file next to this file
 # (Compose reads it automatically). See .env.example for the list.
 #
-#   docker compose up -d     start (in the background)
-#   docker compose ps        show status
-#   docker compose down      stop (data is kept in the volume)
+#   docker compose up -d                      start (in the background)
+#   docker compose ps                         show status
+#   docker compose logs -f web                follow Django's output
+#   docker compose exec web python manage.py  run a Django command
+#   docker compose down                       stop (data is kept in the volume)
 
 name: nbs
 
@@ -21,7 +23,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
       # <your PC>:<container>. 127.0.0.1 = reachable only from this PC.
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       # Database files live in a named Docker volume, not in the project folder
       - pgdata:/var/lib/postgresql/data
@@ -31,6 +33,26 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  web:
+    # Built from the Dockerfile in this folder
+    build: .
+    # Django reads its settings and secrets from these environment variables
+    env_file: .env
+    environment:
+      # Inside Docker's network, the database is reached by its service name
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # Mount the project folder into the container: code edits on Windows
+      # are visible at once and runserver reloads automatically
+      - .:/app
+    depends_on:
+      db:
+        # Start Django only after the database healthcheck passes
+        condition: service_healthy
 
 volumes:
   pgdata:

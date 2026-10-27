@@ -1,0 +1,3 @@
+# Python packages for the NbS mini-dashboard (installed into the Docker image)
+Django>=5.2,<5.3            # LTS release, supported until April 2028
+psycopg[binary]>=3.2,<4     # PostgreSQL driver (version 3)
