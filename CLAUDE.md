@@ -84,53 +84,28 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 4 — GeoDjango models: **done** (2026-10-27). Milestone 5 not started.
-  Milestones 1–3 done and pushed
-- **Milestone 4 plan:** 4.1 app `catalog` + models + migration (`sqlmigrate`) · 4.2 admin
-  with map widgets + local admin user · 4.3 `import_municipalities` command (GDAL API) ·
-  4.4 sample NbS CSV + `load_sample_nbs` (municipality found by `save()`) · 4.5 M3
-  queries in the ORM (`dwithin`, `Distance`, `Area`, `PointOnSurface`) · 4.6 recap
-  first, then quiz, `LEARNING.md`, push (ask first)
-- **Decision (2026-10-27): geometries stored in EPSG:25832** (`catalog.models.SRID`),
-  so areas/distances are in metres. The API transforms to 4326 for the map (M5)
-- **Milestone 4 progress:**
-  - 4.1 done: app `catalog` in `INSTALLED_APPS`. `Municipality` (`istat_code` unique,
-    `name`, `name_alt`, `geom` MultiPolygon 25832). `NbS` (`name`, `nbs_type`
-    TextChoices with 9 types, `description`, `cost_eur`, `benefit_heat`, `benefit_flood`,
-    `benefit_biodiversity`, `benefit_wellbeing` (0–5, validator only, no DB check),
-    `location` Point 25832, `municipality` FK filled in `save()` with
-    `geom__contains`). Migration `0001_initial`: Django creates the GiST indexes itself
-  - 4.2 done: `GISModelAdmin` for both (OpenLayers 7.2.2 widget from jsdelivr, OSM
-    tiles, NbS map opens on Merano). Admin user `admin`; username, email and password in
-    `.env` (`DJANGO_SUPERUSER_*`, placeholders in `.env.example`), created with
-    `createsuperuser --noinput` → log in at http://localhost:8000/admin/
-  - **Fix:** OSM tiles were "blocked" in the admin because Django's default
-    `Referrer-Policy: same-origin` sends no Referer → `SECURE_REFERRER_POLICY =
-    'strict-origin-when-cross-origin'` in `settings.py`
-  - 4.3 done: `python manage.py import_municipalities` (GDAL `DataSource` on the ISTAT
-    zip, `transform(25832)`, Polygon → MultiPolygon, `update_or_create` by ISTAT code,
-    `transaction.atomic`) → 116 created; re-run = 116 updated. ORM check: Merano
-    `Area()` 25.98 km², 9 neighbours (`geom__touches`), lon/lat point →
-    `geom__contains` adds `ST_Transform(…, 25832)` automatically
-  - Old M3 table `istat_municipalities` still exists (SQL playground); Django uses
-    `catalog_municipality`
-  - 4.4 done: `data/sample/nbs_sample.csv` (12 **fictional** NbS around Merano, lon/lat;
-    `data/sample/README.md` says so) + `python manage.py load_sample_nbs` (match by name,
-    `full_clean()` before `save()`, `transaction.atomic`). Result: Merano 5, Lana 2,
-    Naturno, Marlengo, Lagundo, Postal, Scena 1 each. School green roof stored as
-    25832 (665194, 5170903). `full_clean` demo rejects `green_rooof` and score 7
-  - I added an NbS "test" myself in the admin (id 1, Merano, cost 100); deleted on my
-    request → 12 NbS, total 2,930,000 EUR, Merano 5
-  - 4.5 done: `scripts/orm_queries.py` (run with `manage.py shell -v 0 -c
-    "exec(open('scripts/orm_queries.py').read())"`): `location__dwithin` + `D(km=…)`,
-    `Distance` + `order_by`, `Sum` within 5 km, `geom__dwithin` (12, same as SQL),
-    `Centroid`/`PointOnSurface` (Santa Cristina), `Transform(…, 4326)` preview; printed
-    SQL shows `ST_DWithin(location, ST_Transform(<point>, 25832), 1000.0)`
-  - 4.6 done: recap, quiz (1 half right, 2 unknown, 3 wrong) → explained with a demo
-    (bad NbS saved without `full_clean()`, SQL captured, rolled back). Milestone 4 in
-    `LEARNING.md`
-- **Next step:** push Milestone 4 (ask first), then Milestone 5 — GeoJSON API with
-  djangorestframework-gis. **Waiting for my go-ahead**
+- **Milestone:** 5 — GeoJSON API (started 2026-10-27). Milestones 1–4 done and pushed
+- **Milestone 5 plan:** 5.1 install DRF + DRF-gis · 5.2 `/api/nbs/` GeoJSON in 4326 ·
+  5.3 filters (`type`, `municipality`, `near` + `radius`) · 5.4 `/api/municipalities/`
+  + `/api/nbs-types/` · 5.5 API tests · 5.6 recap, quiz, `LEARNING.md`, push (ask first)
+- **Milestone 5 progress:**
+  - 5.1 done: `requirements.txt` + `djangorestframework` 3.16.1, `djangorestframework-gis`
+    1.3.0 (brought `django-filter` 26.2); image rebuilt (GDAL layer cached);
+    `rest_framework`, `rest_framework_gis` in `INSTALLED_APPS`
+  - 5.2 done: `catalog/serializers.py` `NbSSerializer(GeoFeatureModelSerializer)`:
+    `geometry = GeometryField(source='location_4326', precision=6)`, `nbs_type_label`,
+    `municipality` (name), `geo_field = 'geometry'`. `catalog/views.py`
+    `NbSViewSet(ReadOnlyModelViewSet)`: `select_related('municipality')` +
+    `annotate(location_4326=Transform('location', 4326))`. `catalog/urls.py`
+    `DefaultRouter` → `/api/`, `/api/nbs/`, `/api/nbs/<id>/`. Result: 12 features,
+    **1 SQL query** (13 without `select_related` = N+1), school roof `[11.1597, 46.6713]`
+  - 5.3 done: filters in `get_queryset`: `?type=` (repeatable, unknown → 400),
+    `?municipality=<ISTAT>`, `?near=lon,lat&radius=m` (`location__dwithin`, bad → 400).
+    Merano 5, within 1 km 3, green roofs in Lana (`021041`) 1. First `near` request
+    does 1 extra query on `spatial_ref_sys` (units of 25832), then cached
+  - Browsable API at http://localhost:8000/api/nbs/ shows the view docstring as docs
+    (title "Nb S List" is cosmetic, from the class name)
+- **Next step:** 5.4 — `/api/municipalities/` and `/api/nbs-types/`
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
@@ -172,6 +147,27 @@ city where Eurac is based as an example in this project.
 - **Data folders:** `data/raw/` = big downloads (ignored) · `data/sample/` = small sample
   data, e.g. NbS (committed) · `frontend/data/` = small display files for the map,
   EPSG:4326 (committed)
+
+### Milestone 4 log (done 2026-10-27)
+
+- **Decision: geometries stored in EPSG:25832** (`catalog.models.SRID`); the API
+  transforms to 4326
+- App `catalog`: `Municipality` (`istat_code` unique, `name`, `name_alt`, `geom`
+  MultiPolygon 25832) and `NbS` (`name`, `nbs_type` TextChoices with 9 types,
+  `description`, `cost_eur`, `benefit_heat/flood/biodiversity/wellbeing` 0–5 (validator
+  only, no DB check), `location` Point 25832, `municipality` FK filled in `save()` via
+  `geom__contains`). Migration `0001_initial` (GiST indexes created by Django)
+- `GISModelAdmin` for both (OpenLayers 7.2.2 + OSM). Admin user `admin`, data in `.env`
+  (`DJANGO_SUPERUSER_*`), `createsuperuser --noinput` → http://localhost:8000/admin/.
+  Fix: `SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'` (OSM tiles need a
+  Referer)
+- Commands: `import_municipalities` (GDAL `DataSource`, 116, re-runnable),
+  `load_sample_nbs` (`data/sample/nbs_sample.csv`, 12 **fictional** NbS, `full_clean()`
+  before `save()`): Merano 5, Lana 2, Naturno, Marlengo, Lagundo, Postal, Scena 1 each;
+  total 2,930,000 EUR
+- `scripts/orm_queries.py`: M3 questions in the ORM (`dwithin` + `D()`, `Distance`,
+  `Sum`, `Centroid`/`PointOnSurface`, `Transform`)
+- Old M3 table `istat_municipalities` still exists (SQL playground)
 
 ### Milestone 3 log (done 2026-10-27)
 

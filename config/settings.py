@@ -49,6 +49,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # GeoDjango: geometry model fields, spatial lookups, GIS admin widgets
     'django.contrib.gis',
+    # REST API: Django REST Framework + its GeoJSON extension
+    'rest_framework',
+    'rest_framework_gis',
     # Our apps
     'catalog',
 ]

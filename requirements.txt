@@ -1,3 +1,5 @@
 # Python packages for the NbS mini-dashboard (installed into the Docker image)
 Django>=5.2,<5.3            # LTS release, supported until April 2028
 psycopg[binary]>=3.2,<4     # PostgreSQL driver (version 3)
+djangorestframework>=3.16,<3.17   # REST API framework (serializers, views, browsable API)
+djangorestframework-gis>=1.1,<2   # GeoJSON serializers and fields for DRF
