@@ -1,0 +1,24 @@
+/* Full-window layout: header on top, the map fills the rest */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 0.6rem 1rem;
+  background: #2e6b3a;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Leaflet draws into this div. Without a real height the map is invisible. */
+#map {
+  flex: 1;
+}

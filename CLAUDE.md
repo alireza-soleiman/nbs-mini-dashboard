@@ -84,48 +84,56 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Milestone:** 1 — Setup: **done** (2026-10-26 → 2026-10-27). Milestone 2 not started
-- **Done so far:**
-  - Created `CLAUDE.md`, `.claude/settings.json`, `LEARNING.md`
-  - Added the **Git & GitHub** rules to `CLAUDE.md`
-  - Changed teaching rules (2026-10-26): Claude writes all code, I don't write code.
-    Output style switched from Learning to **Explanatory** (2026-10-27)
-  - 1.1 Git initialised on `main` (global `init.defaultBranch main` overrides system `master`)
-  - 1.2 `.gitignore` (Python, venv, Django, secrets `.env*` except `.env.example`,
-    `pgdata/`, `*.dump`, `*.backup`, `data/raw/`) and `.gitattributes` (LF line endings)
-  - 1.3 Public GitHub repo created and set as `origin`:
-    https://github.com/alireza-soleiman/nbs-mini-dashboard
-  - 1.4 PostGIS in Docker via `compose.yaml` (service `db`, image `postgis/postgis:17-3.5`,
-    named volume `nbs_pgdata`, healthcheck). Secrets in `.env` (ignored, random password),
-    template in `.env.example`. Reachable at `127.0.0.1:5433`, database/user `nbs`.
-    Verified: PostgreSQL 17.5, PostGIS 3.5.2, first `ST_MakePoint` query works
-  - **Decision (2026-10-27): Django runs in Docker too** (no GDAL install on Windows)
-  - 1.5 `Dockerfile` (`python:3.12-slim-trixie` + Debian `gdal-bin`), `requirements.txt`
-    (Django 5.2 LTS, psycopg 3), `.dockerignore`, `web` service in `compose.yaml`
-    (code bind-mounted at `/app`, waits for a healthy `db`, port `127.0.0.1:8000`).
-    In the image: Django 5.2.18, GDAL 3.10.3, GEOS 3.13.1
-  - 1.6 Django project `config` (`manage.py` in the repo root). `settings.py` reads
-    `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS` and `POSTGRES_*` from env
-    vars, uses the `postgis` backend, has `django.contrib.gis`, `TIME_ZONE = 'Europe/Rome'`
-  - 1.7 Verified: `manage.py check` OK, `migrate` OK, Merano transformed from EPSG:4326 to
-    EPSG:25832 (665194, 5170903), welcome page HTTP 200 at http://localhost:8000
-  - 1.8 (part 1) Commit email for **this repo** set to the GitHub noreply address
-    `153937783+alireza-soleiman@users.noreply.github.com` (`git config --local`; global
-    stays Gmail). All 6 commits rewritten with it before the first push. History scanned
-    for secrets: clean. **First push 2026-10-27**: `main` tracks `origin/main`
-- **Tools checked (2026-10-26):** Git 2.56 (user name + email set), GitHub CLI 2.103 logged
-  in as `alireza-soleiman` (HTTPS, `repo` scope), Git Credential Manager handles pushes.
-  Docker client 29.2, engine 29.9. **Docker Desktop does not auto-start**: start it before
-  `docker compose up -d`. Python 3.11.9 on Windows (Microsoft Store build; not used to run
-  Django). No GDAL on Windows, and none needed (`C:\OSGeo4W` is an empty leftover).
-  **Port 5432 is taken** by a local Windows PostgreSQL, so our PostGIS uses host port 5433.
-- **Milestone 1 plan:** 1.1 default branch `main` + `git init` · 1.2 `.gitignore` + first
-  commit · 1.3 GitHub repo + `origin` · 1.4 PostGIS in Docker · 1.5 Django image with GDAL
-  + `web` service · 1.6 Django project on PostGIS, secrets from env vars · 1.7 verify
-  GeoDjango · 1.8 push (ask first), quiz, `LEARNING.md`
-- **Data folders:** `data/raw/` = big downloads (ignored), `data/sample/` = small files (committed)
-  - 1.8 (part 2) Quiz answered; Milestone 1 written in `LEARNING.md`. Weak spots to
-    revisit: Docker networking (`localhost` inside a container), why `.env` is in
-    `.dockerignore`
-- **Next step:** Milestone 2 — Leaflet only. **Waiting for my go-ahead**
+- **Milestone:** 2 — Leaflet only (started 2026-10-27). Milestone 1 done (2026-10-26 → 27)
+- **Milestone 2 plan:** 2.1 Leaflet map + OSM tiles + Merano marker · 2.2 download ISTAT
+  boundaries to `data/raw/` (ask first) + inspect with `ogrinfo` · 2.3 `ogr2ogr` → South
+  Tyrol only, EPSG:4326 GeoJSON in `frontend/data/` · 2.4 draw municipalities (style,
+  popups, hover) · 2.5 quiz, `LEARNING.md`, push (ask first)
+- **Milestone 2 progress:**
+  - 2.1 done: `frontend/` (`index.html`, `css/map.css`, `js/map.js`), Leaflet 1.9.4 from
+    unpkg with SRI `integrity`, OSM tiles, marker on Merano. Served with
+    `python -m http.server 8080 --bind 127.0.0.1 --directory frontend` (also saved as
+    "map" in `.claude/launch.json`) → http://localhost:8080
+  - Data source chosen: ISTAT generalised boundaries `Limiti01012026_g.zip` (10.0 MB),
+    https://www.istat.it/storage/cartografia/confini_amministrativi/generalizzati/2026/
+    South Tyrol = province code `COD_PROV = 21`. Not downloaded yet
+- **Next step:** 2.2 — download the ISTAT zip (waiting for my OK), inspect it
 - **Open questions / blockers:** none
+- **Weak spots to revisit** (from the Milestone 1 quiz): Docker networking (`localhost`
+  inside a container), why `.env` is in `.dockerignore`
+
+### Environment and conventions
+
+- **Tools (checked 2026-10-26):** Git 2.56, GitHub CLI 2.103 logged in as
+  `alireza-soleiman` (HTTPS, `repo` scope). Docker client 29.2, engine 29.9.
+  **Docker Desktop does not auto-start**: start it before `docker compose up -d`.
+  Python 3.11.9 on Windows (Microsoft Store build; used only for small helpers like
+  `http.server`, not for Django). No GDAL on Windows, and none needed.
+- **Ports:** 5432 is taken by a local Windows PostgreSQL → our PostGIS is on host port
+  **5433**. Django: **8000**. Static map server (Milestone 2): **8080**.
+- **Commit email for this repo:** GitHub noreply
+  `153937783+alireza-soleiman@users.noreply.github.com` (`git config --local`;
+  global stays Gmail).
+- **Data folders:** `data/raw/` = big downloads (ignored) · `data/sample/` = small sample
+  data, e.g. NbS (committed) · `frontend/data/` = small display files for the map,
+  EPSG:4326 (committed)
+
+### Milestone 1 log (done 2026-10-26 → 2026-10-27)
+
+- Project rules in `CLAUDE.md`; teaching rules changed 2026-10-26 (Claude writes all
+  code); output style **Explanatory** since 2026-10-27
+- Git on `main`; `.gitignore` (Python, venv, Django, `.env*` except `.env.example`,
+  `pgdata/`, `*.dump`, `*.backup`, `data/raw/`); `.gitattributes` (LF line endings)
+- Public repo https://github.com/alireza-soleiman/nbs-mini-dashboard as `origin`;
+  first push 2026-10-27 after rewriting all commits to the noreply email
+- `compose.yaml`: `db` = `postgis/postgis:17-3.5` (named volume `nbs_pgdata`,
+  healthcheck, `127.0.0.1:5433`, database/user `nbs`); `web` = Django built from
+  `Dockerfile` (`python:3.12-slim-trixie` + Debian `gdal-bin`), code bind-mounted at
+  `/app`, waits for a healthy `db`, `127.0.0.1:8000`
+- **Decision 2026-10-27: Django runs in Docker** (no GDAL install on Windows).
+  In the image: Django 5.2.18 (LTS), psycopg 3, GDAL 3.10.3, GEOS 3.13.1
+- Django project `config`: `settings.py` reads `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`,
+  `DJANGO_ALLOWED_HOSTS`, `POSTGRES_*` from env vars (`.env`, template `.env.example`);
+  `postgis` backend; `django.contrib.gis`; `TIME_ZONE = 'Europe/Rome'`
+- Verified: PostgreSQL 17.5 + PostGIS 3.5.2, `migrate` OK, Merano EPSG:4326 → EPSG:25832
+  = (665194, 5170903), Django welcome page at http://localhost:8000
