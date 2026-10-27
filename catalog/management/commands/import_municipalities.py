@@ -2,7 +2,13 @@
 
     docker compose exec web python manage.py import_municipalities
 
-Safe to run again: existing municipalities are updated, not duplicated.
+Safe to run again: existing municipalities are updated, not duplicated, and keep their
+database ids (so the NbS stay linked to them).
+
+Input (not in Git): data/raw/Limiti01012026_g.zip, the generalised boundaries of all
+Italian municipalities on 1 January 2026, published by ISTAT:
+    https://www.istat.it/storage/cartografia/confini_amministrativi/generalizzati/2026/Limiti01012026_g.zip
+    SHA256 B011A590656C3A3EBC297FBA80726A376AA843B6F164641CF6A4A990021A81D6
 """
 
 from django.contrib.gis.gdal import DataSource
