@@ -87,16 +87,54 @@ city where Eurac is based as an example in this project.
 
 ## Current status
 
-- **Phase 1 (Milestones 1–7): done** (2026-10-26 → 2026-10-27). Working dashboard at
-  http://localhost:8000 + user guide `docs/GUIDE.md` + `README.md`
-- **Next step:** push Phase 1 (ask first). Then **Phase 2** (Milestone 8, handover
+- **Phase 1 (Milestones 1–7): done and pushed** (2026-10-26 → 2026-10-27)
+- **Phase 2 (richer dashboard, my 5 requests): done** (2026-10-27): polygons/lines as
+  NbS, click-to-zoom, realistic sample data, overview page, modern sidebar.
+  Guide, README and `LEARNING.md` updated
+- **Next step:** push Phase 2 (ask first). Then **Phase 3** (Milestone 8, handover
   quality) — **waiting for my go-ahead**. Ideas in `LEARNING.md`
-- **Open questions / blockers:** none
+- **Open questions / blockers:** the old `data/sample/nbs_sample.csv` is no longer in Git
+  but still on disk, because another program (probably Excel) had it open → delete it
+  after closing that program
+- **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
+  handover quality moved to Phase 3
 - **Topics that were hard for me** (explain with code + a small demo when they come
   up): Docker networking (`localhost` inside a container); EPSG code = coordinate
   system, not an area; same SRID before comparing; who transforms (PostGIS via
   `ST_Transform` that Django writes); logic in `save()`; validation layers (`save()` vs.
   `full_clean()`/forms). Explaining with **exact code lines + a live demo** worked well
+
+### Phase 2 log (done 2026-10-27)
+
+- **Model:** `NbS.location` (Point) → `NbS.geom` (GeometryField, any type) + `NbS.code`
+  (unique, nullable). Hand-written migration `0002_nbs_any_geometry_and_code`
+  (RenameField + AlterField + AddField). `save()`: municipality from
+  `geom.point_on_surface`; `code '' → None`
+- **Data:** `data/sample/nbs_sample.geojson`: 29 fictional NbS, 11 municipalities,
+  14 polygons / 12 lines / 3 points, codes `MER-01` …, costs = unit cost × size.
+  Generated once by a script (not in Git); MER-02 (Passer promenade) and POS-01/POS-02
+  (Adige at Postal) were measured on the map and placed on the real banks.
+  `load_sample_nbs` reads GeoJSON, matches by `code`, `--replace`, `--file`. Old CSV removed
+- **API:** NbS feature = full geometry in 4326 + `marker` [lon, lat] (`PointOnSurface`) +
+  `geometry_type`, `area_m2`, `length_m`, `code`; `defer('geom')`; `near` uses
+  `geom__dwithin` (nearest part). `/api/summary/` (`totals`, `by_geometry`
+  {points, lines, polygons}, `by_type` with average benefits, `by_municipality`);
+  `GeometryType` via `Func`. First request also reads `spatial_ref_sys` once (tests warm up)
+- **Pages:** `dashboard/templates/dashboard/base.html` (nav, API URLs incl.
+  `data-summary-url`, `data-map-url`), `overview.html` at `/` (name `overview`),
+  `map.html` at `/map/` (name `map`). JS: `api.js`, `ranking.js` (+ `PRESETS`),
+  `colors.js` (score classes, heatmap ramp without step 450), `format.js`,
+  `overview.js` (KPIs, bars, heatmap, log-scale scatter, top 5, tooltip), `map.js`
+  (municipality pane below shapes, shapes + white casing for lines, markers, select →
+  fly + popup + card + `#nbs=<id>`, chips, datalist search, presets, sliders,
+  collapse with `transitionend` + 300 ms fallback, bottom sheet on phones)
+- **Design:** tokens in `dashboard.css` (light/dark), green = UI, blue = data,
+  `prefers-reduced-motion`, sheet `z-index: 1001` above Leaflet controls
+- **Verified in the browser:** numbers in GUIDE §8.2 (Balanced top TIR-02 81, MER-05 80,
+  MER-02 80, last MER-03 49; Flood POS-01 81; Low budget MER-02 84; totals €9.1M,
+  4.9 ha, 5.1 km), click-to-zoom, deep link, collapse, phone layouts. 19 tests OK
+- Testing gotchas: the hidden browser pane pauses animations; the browser caches CSS
+  (check with a `?v=` reload)
 
 ### Phase 1 log: Milestones 5–7 (done 2026-10-27)
 

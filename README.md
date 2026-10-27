@@ -1,12 +1,18 @@
 # NbS mini-dashboard
 
 A small GIS dashboard for **Nature-Based Solutions (NbS)** in South Tyrol, built as a
-learning project. It shows NbS on a map, filters them, and **ranks them by several
-criteria with your own weights** (heat reduction, flood and stormwater, biodiversity,
-health and wellbeing, cost).
+learning project:
 
-> **The NbS data is fictional.** The 12 sample NbS around Merano were invented for
-> learning (see `data/sample/README.md`). The municipality boundaries are real (ISTAT).
+- an **overview page** with key figures and charts (types, costs per municipality,
+  benefit profile, cost against benefit, top 5);
+- a **map page** where NbS are drawn as **points, lines or polygons**, filtered by type
+  and municipality, and **ranked by several criteria with your own weights** (heat
+  reduction, flood and stormwater, biodiversity, health and wellbeing, cost), with
+  presets and an explanation of every score.
+
+> **The NbS data is fictional.** The 29 sample NbS in 11 municipalities around Merano
+> were invented for learning (see `data/sample/README.md`). The place names and the
+> municipality boundaries (ISTAT) are real.
 
 **Stack:** Django 5.2 + GeoDjango · PostgreSQL 17 + PostGIS 3.5 · Django REST Framework +
 djangorestframework-gis · Leaflet 1.9.4 · Docker Compose.
@@ -51,8 +57,9 @@ docker compose down       # stop; the data stays in the Docker volume
 
 | Address | What |
 |---|---|
-| http://localhost:8000/ | the dashboard |
-| http://localhost:8000/api/ | the API (browsable in the browser) |
+| http://localhost:8000/ | overview: key figures and charts |
+| http://localhost:8000/map/ | map, filters, priorities and ranking |
+| http://localhost:8000/api/ | the API (browsable in the browser); `/api/summary/` = totals |
 | http://localhost:8000/admin/ | the admin (login: `DJANGO_SUPERUSER_*` in `.env`) |
 | `127.0.0.1:5433` | PostGIS for QGIS / pgAdmin (database and user `nbs`) |
 
@@ -61,8 +68,8 @@ docker compose down       # stop; the data stays in the Docker volume
 ```
 config/        Django settings and URLs
 catalog/       data: models, admin, import commands, API (serializers, views), tests
-dashboard/     the web page: template, JavaScript (api.js, ranking.js, dashboard.js), CSS
-data/sample/   sample NbS (CSV, fictional)          data/raw/   downloads (not in Git)
+dashboard/     the pages: templates, JavaScript (overview.js, map.js, ranking.js, …), CSS
+data/sample/   sample NbS (GeoJSON, fictional)      data/raw/   downloads (not in Git)
 sql/           SQL exercises (Milestone 3)          scripts/    helper scripts
 docs/GUIDE.md  how to use, change and test the project
 compose.yaml   the two services: db (PostGIS) and web (Django)
@@ -73,6 +80,9 @@ compose.yaml   the two services: db (PostGIS) and web (Django)
 ```
 docker compose exec web python manage.py test
 ```
+
+19 tests (API, shapes, summary, admin, pages). The manual checklist is in
+[docs/GUIDE.md](docs/GUIDE.md#8-testing-all-features).
 
 ## Data sources and licences
 

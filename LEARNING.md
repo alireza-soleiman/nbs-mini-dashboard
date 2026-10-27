@@ -419,8 +419,36 @@ works, how to change it and how to test it is in [docs/GUIDE.md](docs/GUIDE.md).
   validator; numbers 1–3 on the top three markers.
 - Checked the JavaScript ranking against an independent Python calculation: identical.
 
-## Phase 2 — Handover quality (Milestone 8)
+## Phase 2 — A richer dashboard
 
-_Not started yet._ Ideas: production settings (no `runserver`, `DEBUG` off), database
-`CheckConstraint` for the 0–5 scores, secret scanning before commits, JavaScript tests
-for `ranking.js`.
+_Done: 2026-10-27. Details: [docs/GUIDE.md](docs/GUIDE.md)._
+
+- **Points, lines, polygons:** `NbS.location` (Point) → `NbS.geom` (any geometry).
+  The migration was written by hand with `RenameField` + `AlterField`, so the data
+  stayed (`makemigrations` would have deleted and re-added the column). The
+  municipality comes from `point_on_surface`, because a shape can cross a border.
+- **API extras:** a marker point (`PointOnSurface`), `area_m2` / `length_m` computed in
+  metres, and `/api/summary/` with totals made by SQL `GROUP BY`
+  (`values().annotate()`). Django 5.2 has no `GeometryType` function, so
+  `Func(F('geom'), function='GeometryType')` calls the PostGIS function directly.
+  Two naming traps: an annotation and an aggregate with the same name, and an alias
+  (`name`) that clashes with a model field.
+- **New sample data:** 29 fictional NbS in 11 municipalities as GeoJSON (editable in
+  QGIS), each with a `code` (MER-01 …) used as the import key. Shapes drawn in metres by
+  a script; three lines (Passer promenade, Adige at Postal) were checked on the map and
+  moved onto the real river banks.
+- **Overview page** (`/`): key figures, bars, a heatmap and a scatter plot built with
+  plain HTML/SVG, shared tooltip, links to `/map/#nbs=<id>`.
+- **Map page** (`/map/`): shapes coloured by score, click = fly to the feature (also
+  municipalities), type chips, municipality search, weight presets, collapsible
+  sidebar, bottom sheet on phones, shareable address.
+- **Design rules:** green = interface, blue = data; one hue for magnitudes; every
+  heatmap cell ≥ 5.4:1 text contrast (one ramp step removed); "reduce motion" respected.
+- **Testing lessons:** a hidden browser tab pauses animations, so test the logic
+  (spy on `flyToBounds`, switch transitions off); the browser caches CSS/JS (Ctrl+F5).
+
+## Phase 3 — Handover quality (Milestone 8)
+
+_Not started yet._ Ideas: production settings (no `runserver`, `DEBUG` off, hashed
+static file names), database `CheckConstraint` for the 0–5 scores, secret scanning
+before commits, JavaScript tests for `ranking.js`.
