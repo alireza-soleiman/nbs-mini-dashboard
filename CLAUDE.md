@@ -113,7 +113,20 @@ city where Eurac is based as an example in this project.
     `geom__contains` adds `ST_Transform(…, 25832)` automatically
   - Old M3 table `istat_municipalities` still exists (SQL playground); Django uses
     `catalog_municipality`
-- **Next step:** 4.4 — sample NbS data around Merano + loader
+  - 4.4 done: `data/sample/nbs_sample.csv` (12 **fictional** NbS around Merano, lon/lat;
+    `data/sample/README.md` says so) + `python manage.py load_sample_nbs` (match by name,
+    `full_clean()` before `save()`, `transaction.atomic`). Result: Merano 5, Lana 2,
+    Naturno, Marlengo, Lagundo, Postal, Scena 1 each. School green roof stored as
+    25832 (665194, 5170903). `full_clean` demo rejects `green_rooof` and score 7
+  - I added an NbS "test" myself in the admin (id 1, Merano, cost 100) → it is
+    counted in the queries (Merano 6). Not deleted: my data
+  - 4.5 done: `scripts/orm_queries.py` (run with `manage.py shell -v 0 -c
+    "exec(open('scripts/orm_queries.py').read())"`): `location__dwithin` + `D(km=…)`,
+    `Distance` + `order_by`, `Sum` within 5 km, `geom__dwithin` (12, same as SQL),
+    `Centroid`/`PointOnSurface` (Santa Cristina), `Transform(…, 4326)` preview; printed
+    SQL shows `ST_DWithin(location, ST_Transform(<point>, 25832), 1000.0)`
+- **Next step:** 4.6 — short recap first, then the Milestone 4 quiz, `LEARNING.md`,
+  push (ask first)
 - **Open questions / blockers:** none
 - **Weak spots to revisit:**
   - Milestone 1 quiz: Docker networking (`localhost` inside a container), why `.env` is
