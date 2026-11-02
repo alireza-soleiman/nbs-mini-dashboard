@@ -447,6 +447,28 @@ _Done: 2026-10-27. Details: [docs/GUIDE.md](docs/GUIDE.md)._
 - **Testing lessons:** a hidden browser tab pauses animations, so test the logic
   (spy on `flyToBounds`, switch transitions off); the browser caches CSS/JS (Ctrl+F5).
 
+## Real places for the sample NbS (2026-11-02)
+
+_Details: [docs/GUIDE.md](docs/GUIDE.md) §7.2 and `data/sample/README.md`._
+
+- **Problem:** the old shapes were drawn by a script from a centre point and a size, so
+  a "green roof on a sports hall" was a rectangle across a road and three buildings.
+- **Fix:** every shape is now a real **OpenStreetMap** feature, the same data the
+  background maps are drawn from: a building outline (roof), its longest wall (facade),
+  a stretch of a real street or river, a real car park, meadow or junction.
+  `scripts/build_sample_shapes.py` holds one recipe per NbS (`area`, `wall`, `stretch`,
+  `middle`, `spot` + the OSM way number) and recalculates the costs from the real sizes.
+- **Finding features:** the **Overpass API** searches OSM by tags and area
+  (`way["amenity"="school"](bbox)`). Two statements in a row do not add up: a union
+  needs `( … );`. The free servers were often busy (502/504), so for known ids the
+  script uses the main **OSM API** (`/api/0.6/way/<id>/full`), which is fast and stable.
+- **Check with the database, not by eye:** after loading, two NbS were in the wrong
+  municipality (a grass plot across the Lagundo border, and the Adige, which is the
+  Postal–Lana border for part of its course). A PostGIS point-in-polygon check along
+  the river showed where it is really inside Postal.
+- **Licence:** OSM data is ODbL, so the sample file credits "© OpenStreetMap
+  contributors" and stays under the ODbL.
+
 ## Phase 3 — Handover quality (Milestone 8)
 
 _Not started yet._ Ideas: production settings (no `runserver`, `DEBUG` off, hashed

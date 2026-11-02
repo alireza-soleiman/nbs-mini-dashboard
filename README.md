@@ -10,9 +10,10 @@ learning project:
   reduction, flood and stormwater, biodiversity, health and wellbeing, cost), with
   presets and an explanation of every score.
 
-> **The NbS data is fictional.** The 29 sample NbS in 11 municipalities around Merano
-> were invented for learning (see `data/sample/README.md`). The place names and the
-> municipality boundaries (ISTAT) are real.
+> **The NbS data is fictional, the places are real.** The 29 sample NbS in 11
+> municipalities around Merano were invented for learning (see `data/sample/README.md`),
+> but each one lies on a real OpenStreetMap feature: a real roof, street, river or
+> meadow. The municipality boundaries (ISTAT) are real too.
 
 **Stack:** Django 5.2 + GeoDjango · PostgreSQL 17 + PostGIS 3.5 · Django REST Framework +
 djangorestframework-gis · Leaflet 1.9.4 · Docker Compose.
@@ -88,4 +89,6 @@ docker compose exec web python manage.py test
 
 - Municipality boundaries: © ISTAT, generalised boundaries on 1 January 2026.
 - Background map: © OpenStreetMap contributors.
-- NbS sample data: fictional, created for this project.
+- NbS sample data: fictional, created for this project. Their shapes: © OpenStreetMap
+  contributors, [ODbL 1.0](https://www.openstreetmap.org/copyright) (made by
+  `scripts/build_sample_shapes.py`).

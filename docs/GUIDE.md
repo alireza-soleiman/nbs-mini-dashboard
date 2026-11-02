@@ -123,7 +123,7 @@ The method is a **weighted sum** (also called *Simple Additive Weighting*).
 3. `score = (sum of weight × value) / (sum of weights) × 100` → a number from 0 to 100.
 
 **Example** (*Balanced*, all weights 5): *Green roof on a primary school – Maia Bassa*
-(MER-01) has heat 3, flood 3, biodiversity 2, wellbeing 2, cost 175,000 €:
+(MER-01) has heat 3, flood 3, biodiversity 2, wellbeing 2, cost 85,000 €:
 
 | Criterion | Value | Points |
 |---|---|---|
@@ -131,8 +131,11 @@ The method is a **weighted sum** (also called *Simple Additive Weighting*).
 | Flood & stormwater | 3 / 5 | 12.0 |
 | Biodiversity | 2 / 5 | 8.0 |
 | Health & wellbeing | 2 / 5 | 8.0 |
-| Low cost | 175,000 € | 18.1 |
-| **Score (rank 23 of 29)** | | **58** |
+| Low cost | 85,000 € | 19.3 |
+| **Score (rank 22 of 29)** | | **59** |
+
+The cost points: (most expensive − this cost) / (most expensive − cheapest) × 20 =
+(1,505,000 − 85,000) / (1,505,000 − 35,000) × 20 = **19.3**.
 
 With five equal weights each criterion can give at most 20 points.
 
@@ -181,6 +184,19 @@ After a data change, **reload the page** (F5) to see it.
    **all** NbS first, also ones made in the admin).
 4. A wrong type or a benefit above 5 stops the whole load with an error, and nothing
    is changed.
+
+**Where the sample shapes come from.** Every sample shape is a real OpenStreetMap
+feature, made by `scripts/build_sample_shapes.py` (the `osm` property says which one).
+To move an NbS to another real building, street or meadow:
+1. On https://www.openstreetmap.org, right-click the place → *Query features* → note
+   the way number (e.g. *Way 316906322*).
+2. Change the NbS's line in `SHAPES` in the script: `area('way/…')` for a roof, car park
+   or park, `wall(…)` for a facade, `stretch(…)` / `middle(…)` for a street or river,
+   `spot(…)` for a point on a street.
+3. Run `docker compose exec web python scripts/build_sample_shapes.py` (new shapes and
+   costs), then `load_sample_nbs`, and check the municipality it prints.
+
+A shape edited by hand in QGIS is overwritten the next time the script runs.
 
 ### 7.3 Use your own NbS file
 
@@ -257,31 +273,33 @@ the admin; and that both pages and their files are delivered.
 ### 8.2 Manual checklist (with the sample data: 29 NbS)
 
 **Overview page** (http://localhost:8000)
-- [ ] Key figures: **29** NbS · **€9.1M** · **11 of 116** municipalities · **4.9 ha** · **5.1 km**.
+- [ ] Key figures: **29** NbS · **€8.3M** · **11 of 116** municipalities · **3.8 ha** · **5.1 km**.
 - [ ] "NbS per type": *Street trees* **6** at the top, then *Green roof* **5**.
-- [ ] "Cost per municipality": *Postal/Burgstall* at the top (**€2.3M**).
+- [ ] "Cost per municipality": *Naturno/Naturns* at the top (**€1.9M**).
 - [ ] The heatmap has 9 rows × 4 columns; hover a cell → type, benefit and average.
 - [ ] Hover a dot → name, cost, average benefit. Click it → the map opens on that NbS.
-- [ ] Top 5: 1 *Village park extension – Tirolo* **81**, 2 *Pocket park … Maia Alta*
-      **80**, 3 *Shade trees along a riverside promenade* **80**. Click one → the map
+- [ ] Top 5: 1 *Pocket park on a vacant lot – Maia Alta* **83**, 2 *Village park on a
+      meadow – Tirolo* **80**, 3 *Shade trees along a riverside promenade* **80**. Click one → the map
       opens with its popup.
 
 **Map page** (http://localhost:8000/map/)
-- [ ] Summary: **29 NbS · €9.1M · 11 municipalities**; lines and polygons are drawn,
+- [ ] Summary: **29 NbS · €8.3M · 11 municipalities**; lines and polygons are drawn,
       plus 29 markers; the top three markers show 1, 2, 3.
-- [ ] Ranking (Balanced): 1 TIR-02 **81** … last (29) *Permeable paving in a commuter
-      car park – Sinigo* **49**.
+- [ ] Ranking (Balanced): 1 MER-05 **83** … last (29) *Green facade on an office
+      building – Merano centre* **49**.
+- [ ] Zoom close to any NbS: its shape lies exactly on the building, street, river or
+      meadow of the background map (e.g. MER-07 = the school sports hall on Via Mainardo).
 - [ ] Click the polygon *Green roof on a primary school – Maia Bassa* → the map flies to
-      it, the popup shows **1,345 m²**, points 12.0 / 12.0 / 8.0 / 8.0 / 18.1, score
-      **58**, rank 23; its card is highlighted; the address ends with `#nbs=…`.
+      it, the popup shows **640 m²**, points 12.0 / 12.0 / 8.0 / 8.0 / 19.3, score
+      **59**, rank 22; its card is highlighted; the address ends with `#nbs=…`.
 - [ ] Click a municipality outline → the map flies to it; the popup shows its area.
-- [ ] Presets: *Flood* → top three POS-01 **81**, NAT-01 **77**, POS-02 **77**;
-      *Low budget* → MER-02 **84**, PAR-02 **82**, NAT-03 **82**; *Heat* → MER-02 **87**.
+- [ ] Presets: *Flood* → top three POS-01 **83**, POS-02 **78**, NAT-01 **77**;
+      *Low budget* → MER-05 **85**, MER-02 **84**, NAT-03 **82**; *Heat* → MER-02 **87**.
 - [ ] Move one slider → the "Priorities" note says *custom*, no preset is highlighted.
 - [ ] Set all sliders to 0 → message "All weights are 0…" and grey NbS.
 - [ ] Type chips: *None* → "No NbS match the filters."; then only *River restoration*
       → **4** NbS, all lines; *All* → 29 again.
-- [ ] Municipality: type "Lan", pick *Lana/Lana* → **4** NbS, **€875K**, map zooms to
+- [ ] Municipality: type "Lan", pick *Lana/Lana* → **4** NbS, **€660K**, map zooms to
       Lana. Clear the field → 29.
 - [ ] Type *Green roof* only + municipality *Merano/Meran* → **2** NbS (MER-01, MER-07).
 - [ ] The ‹ button hides the panel and the map uses the full width (no grey strip);
@@ -345,5 +363,6 @@ the admin; and that both pages and their files are delivered.
 | Data colours · number formats | `colors.js` · `format.js` |
 | Design (colours, layout, phone view) | `dashboard/static/dashboard/css/dashboard.css` |
 | The sample NbS | `data/sample/nbs_sample.geojson` |
+| Which real OSM feature each sample NbS uses, unit costs | `scripts/build_sample_shapes.py` |
 | Settings (database, security) | `config/settings.py` + `.env` |
 | The demo video and screenshots (for LinkedIn) | `scripts/record_demo.py` → `linkedin/` (not in Git); the tools it needs are listed at the top of the script |
