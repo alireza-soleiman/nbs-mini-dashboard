@@ -99,8 +99,26 @@ city where Eurac is based as an example in this project.
   limit) and **deleted after my OK**; to re-record, install them again (script header).
   The recording found a phone bug (results hidden behind the bottom sheet) → fixed.
   Keep the excluded city out of the pictures: the phone screenshot zooms to Merano (z 12)
-- **Next step:** **Phase 3** (Milestone 8, handover quality) — **waiting for my
-  go-ahead**. Ideas in `LEARNING.md`; Playwright end-to-end tests are a good candidate
+- **MapLibre prototype (2026-11-02), branch `maplibre-prototype` (not pushed, not
+  merged):** after Mapbox research (Mapbox GL JS = proprietary + token since v2;
+  MapLibre = BSD fork) I chose a prototype. `/map-3d/` (name `map3d`, nav "3D map
+  beta"): MapLibre **5.24.0** from cdnjs with SRI; backgrounds OpenFreeMap
+  `liberty`/`positron` + own style with EOX Sentinel-2 2023 (WMTS `{z}/{y}/{x}`,
+  maxzoom 14, CC BY-NC-SA); Terrarium terrain (maxzoom 15, exaggeration 1) + hillshade;
+  sky. `map3d.js`: layers re-added on every `style.load` (`setStyle(…, {diff: false})`,
+  `structuredClone` of the style object); `step` colour expressions built from
+  `SCORE_CLASSES`; feature state `selected`/`hover`; shapes under the basemap labels;
+  presets only. Shared modules: `popup.js` (`popupHtml(row, total)`), `panel.js`
+  (`summaryHtml`, `legendHtml`, `renderRanking`, `markSelectedCard`). 20 tests OK.
+  Verified with JS in the hidden pane (rAF replaced by a timer for tests; canvas copied
+  into an `<img>` for screenshots): same ranking numbers as GUIDE §8.2, background
+  switches keep popup + selection, deep link. Basemap warning "Expected value to be of
+  type number, but found null" = OpenFreeMap `building-3d` (harmless).
+  South Tyrol WMS orthophotos tested and rejected (patchy coverage per year)
+- **Next step:** compare the 3D prototype with the 2D map, then decide: merge it into
+  `main` (and push), keep improving it, or drop it. After that, **Phase 3**
+  (Milestone 8, handover quality) — **waiting for my go-ahead**. Ideas in
+  `LEARNING.md`; Playwright end-to-end tests are a good candidate
 - **Open questions / blockers:** the old `data/sample/nbs_sample.csv` is no longer in Git
   but still on disk, because another program (probably Excel) had it open → delete it
   after closing that program

@@ -447,6 +447,29 @@ _Done: 2026-10-27. Details: [docs/GUIDE.md](docs/GUIDE.md)._
 - **Testing lessons:** a hidden browser tab pauses animations, so test the logic
   (spy on `flyToBounds`, switch transitions off); the browser caches CSS/JS (Ctrl+F5).
 
+## Prototype — 3D map with MapLibre (branch `maplibre-prototype`)
+
+_Built: 2026-11-02. Details: [docs/GUIDE.md](docs/GUIDE.md) §4.1._
+
+- **Why MapLibre, not Mapbox:** Mapbox GL JS is closed source since v2 (2020) and needs
+  a token (free up to 50,000 map loads a month). MapLibre GL JS is its open-source fork
+  (BSD) with almost the same API. With free, keyless sources: OpenFreeMap (vector
+  maps), Terrarium tiles (heights), EOX Sentinel-2 (photos, non-commercial only).
+- **Leaflet vs. MapLibre:** Leaflet keeps one JavaScript object per marker and paints
+  ready-made pictures (raster tiles). MapLibre gets *vector* tiles and draws everything
+  with the graphics card (WebGL): sharp at every zoom, tilt, rotate, 3D terrain.
+- **Source + layers + expressions:** our NbS are a GeoJSON *source*; *layers* say how
+  to draw it (fill, line, circle, symbol); colours are *expressions* that run for each
+  feature (`['step', score, …]` = `scoreClass()` on the GPU). Re-ranking = new scores
+  into the data + `setData()`. *Feature state* (selected, hover) changes the look
+  without new data.
+- **A style is everything:** `setStyle()` replaces all layers, ours too, so they are
+  added again on every `style.load`.
+- **Shared code:** `popup.js` and `panel.js` serve both maps, so they cannot drift apart.
+- **Testing lesson:** a hidden browser pane gives MapLibre no frames; I replaced
+  `requestAnimationFrame` with a timer (test only) and copied the WebGL canvas into an
+  image to see it.
+
 ## Phase 3 — Handover quality (Milestone 8)
 
 _Not started yet._ Ideas: production settings (no `runserver`, `DEBUG` off, hashed

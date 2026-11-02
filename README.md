@@ -8,14 +8,16 @@ learning project:
 - a **map page** where NbS are drawn as **points, lines or polygons**, filtered by type
   and municipality, and **ranked by several criteria with your own weights** (heat
   reduction, flood and stormwater, biodiversity, health and wellbeing, cost), with
-  presets and an explanation of every score.
+  presets and an explanation of every score;
+- a **3D map** (prototype) with the same NbS and ranking on a vector map with 3D
+  terrain and satellite photos, drawn with MapLibre GL JS.
 
 > **The NbS data is fictional.** The 29 sample NbS in 11 municipalities around Merano
 > were invented for learning (see `data/sample/README.md`). The place names and the
 > municipality boundaries (ISTAT) are real.
 
 **Stack:** Django 5.2 + GeoDjango · PostgreSQL 17 + PostGIS 3.5 · Django REST Framework +
-djangorestframework-gis · Leaflet 1.9.4 · Docker Compose.
+djangorestframework-gis · Leaflet 1.9.4 · MapLibre GL JS 5.24 (3D map) · Docker Compose.
 
 **How to use, change and test everything: [docs/GUIDE.md](docs/GUIDE.md).**
 
@@ -59,6 +61,7 @@ docker compose down       # stop; the data stays in the Docker volume
 |---|---|
 | http://localhost:8000/ | overview: key figures and charts |
 | http://localhost:8000/map/ | map, filters, priorities and ranking |
+| http://localhost:8000/map-3d/ | 3D map (prototype): terrain, satellite, presets and ranking |
 | http://localhost:8000/api/ | the API (browsable in the browser); `/api/summary/` = totals |
 | http://localhost:8000/admin/ | the admin (login: `DJANGO_SUPERUSER_*` in `.env`) |
 | `127.0.0.1:5433` | PostGIS for QGIS / pgAdmin (database and user `nbs`) |
@@ -68,7 +71,7 @@ docker compose down       # stop; the data stays in the Docker volume
 ```
 config/        Django settings and URLs
 catalog/       data: models, admin, import commands, API (serializers, views), tests
-dashboard/     the pages: templates, JavaScript (overview.js, map.js, ranking.js, …), CSS
+dashboard/     the pages: templates, JavaScript (overview.js, map.js, map3d.js, ranking.js, …), CSS
 data/sample/   sample NbS (GeoJSON, fictional)      data/raw/   downloads (not in Git)
 sql/           SQL exercises (Milestone 3)          scripts/    helper scripts
 docs/GUIDE.md  how to use, change and test the project
@@ -81,11 +84,16 @@ compose.yaml   the two services: db (PostGIS) and web (Django)
 docker compose exec web python manage.py test
 ```
 
-19 tests (API, shapes, summary, admin, pages). The manual checklist is in
+20 tests (API, shapes, summary, admin, pages). The manual checklist is in
 [docs/GUIDE.md](docs/GUIDE.md#8-testing-all-features).
 
 ## Data sources and licences
 
 - Municipality boundaries: © ISTAT, generalised boundaries on 1 January 2026.
 - Background map: © OpenStreetMap contributors.
+- 3D map backgrounds: [OpenFreeMap](https://openfreemap.org) © OpenMapTiles, data from
+  OpenStreetMap · heights: [Terrain Tiles](https://registry.opendata.aws/terrain-tiles/)
+  (Mapzen/Tilezen, AWS Open Data) · satellite: Sentinel-2 cloudless 2023 by
+  [EOX IT Services GmbH](https://cloudless.eox.at) (contains modified Copernicus Sentinel
+  data 2023), **CC BY-NC-SA 4.0 = non-commercial use only**.
 - NbS sample data: fictional, created for this project.

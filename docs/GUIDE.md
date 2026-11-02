@@ -111,6 +111,24 @@ tap the grey handle to slide it up or down. While the sheet is open, filter resu
 fitted into the visible strip above it. Tapping an NbS card closes the sheet, so you
 see the map fly to the NbS and open its popup.
 
+### 4.1 The 3D map (prototype)
+
+Open **http://localhost:8000/map-3d/** (menu: *3D map beta*). The same NbS and the same
+ranking, drawn with **MapLibre GL JS** instead of Leaflet, to compare the two.
+
+| Part | What it does |
+|---|---|
+| **Tilt and rotate** | Right mouse button + drag (or Ctrl + drag); two fingers on a phone. The compass (top right) turns north up again. |
+| **Background** | *Map* and *Light*: vector maps from OpenFreeMap (sharp at every zoom; the browser draws roads and labels, so our shapes lie *under* the street names). *Satellite*: Sentinel-2 photos from 2023 by EOX (10 m pixels, licence CC BY-NC-SA = non-commercial only). |
+| **3D terrain** | Real heights from free elevation tiles (Terrarium, AWS Open Data), not exaggerated. Untick it for a flat map. |
+| **Look from above / Tilt to 3D** | Switch between the straight-down view and the tilted view. |
+| **Priorities** | The five presets. Sliders for single criteria are only on the 2D map. |
+| **Click, hover, list, address** | As on the 2D map: fly to the NbS, then the popup with the points; `#nbs=<id>` in the address; hovering shows rank, name and score. No type or municipality filters. |
+
+Where things come from: our data from the same `/api/nbs/` and `/api/municipalities/`;
+MapLibre, the backgrounds and the heights from free servers on the internet (no API
+key or account).
+
 ## 5. How the score is calculated
 
 The method is a **weighted sum** (also called *Simple Additive Weighting*).
@@ -247,12 +265,12 @@ docker compose exec web python manage.py createsuperuser --noinput
 docker compose exec web python manage.py test
 ```
 
-Expected: `Ran 19 tests … OK`. They run in a separate, empty test database and check:
+Expected: `Ran 20 tests … OK`. They run in a separate, empty test database and check:
 GeoJSON with lon/lat coordinates; one SQL query per list (no N+1); polygons with area
 and lines with length; the marker point inside a shape; the municipality found from a
 shape; the distance filter reaching any part of a line; all filters and their errors
 (400); the summary totals; municipality and type endpoints; the locked boundaries in
-the admin; and that both pages and their files are delivered.
+the admin; and that the three pages and their files are delivered.
 
 ### 8.2 Manual checklist (with the sample data: 29 NbS)
 
@@ -287,6 +305,18 @@ the admin; and that both pages and their files are delivered.
 - [ ] The ‹ button hides the panel and the map uses the full width (no grey strip);
       clicking again brings it back.
 - [ ] Copy an address like `/map/#nbs=…` into a new tab → the same NbS opens.
+
+**3D map** (http://localhost:8000/map-3d/)
+- [ ] The map opens tilted over the valley with mountains; summary **29 NbS · €9.1M ·
+      11 municipalities**; circles 1, 2, 3 in Merano; ranking 1 TIR-02 **81**.
+- [ ] Drag with the right mouse button → the map tilts and turns. *Look from above* →
+      flat, north up; the button now says *Tilt to 3D*.
+- [ ] *Light* and *Satellite* → the background changes, the NbS stay; an open popup
+      stays open. Untick *3D terrain* → the mountains become flat.
+- [ ] *Flood* → POS-01 **81** first; *Low budget* → MER-02 **84** first (as on the 2D map).
+- [ ] Click a circle → the map flies there, then the popup opens; × closes it and the
+      `#nbs=…` disappears from the address. Click a municipality → its popup and ISTAT code.
+- [ ] Open `/map-3d/#nbs=34` in a new tab → POS-01 opens.
 
 **Admin and data flow**
 - [ ] In the admin, add a test NbS and draw a **polygon** in Merano → after saving, its
@@ -326,6 +356,8 @@ the admin; and that both pages and their files are delivered.
 | `port is already allocated` | Another program uses the port; change `POSTGRES_HOST_PORT` in `.env`. |
 | A municipality's area looks wrong | Run `import_municipalities` again (restores all boundaries from ISTAT). |
 | `load_sample_nbs` says a code is missing or repeated | Every feature in the GeoJSON needs its own `code`. |
+| 3D map: white map area | A tile server or the CDN is not reachable (F12 → Console shows `Map: …`), or the browser has no WebGL. The 2D map still works. |
+| 3D map console: "Expected value to be of type number, but found null" | From the basemap's 3D buildings: some OpenStreetMap buildings have no height. Harmless; not our layers. |
 
 ## 10. Where to find things in the code
 
@@ -340,7 +372,9 @@ the admin; and that both pages and their files are delivered.
 | Page addresses | `dashboard/urls.py` |
 | Page layout (HTML): header, overview, map | `dashboard/templates/dashboard/` |
 | Overview charts | `dashboard/static/dashboard/js/overview.js` |
-| Map, filters, priorities, list, popups | `dashboard/static/dashboard/js/map.js` |
+| Map, filters, priorities | `dashboard/static/dashboard/js/map.js` |
+| 3D map: backgrounds, terrain, layers, colour expressions | `dashboard/static/dashboard/js/map3d.js` |
+| NbS popup · summary, legend and ranking list (both maps) | `popup.js` · `panel.js` |
 | Ranking formula, criteria, presets | `dashboard/static/dashboard/js/ranking.js` |
 | Data colours · number formats | `colors.js` · `format.js` |
 | Design (colours, layout, phone view) | `dashboard/static/dashboard/css/dashboard.css` |
