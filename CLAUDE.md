@@ -115,6 +115,15 @@ city where Eurac is based as an example in this project.
   switches keep popup + selection, deep link. Basemap warning "Expected value to be of
   type number, but found null" = OpenFreeMap `building-3d` (harmless).
   South Tyrol WMS orthophotos tested and rejected (patchy coverage per year)
+- **3D improvement 1 (2026-11-02, branch only): roofs and facades up high.** New field
+  `NbS.height_m` (PositiveSmallIntegerField, null; migration `0003_nbs_height_m`; in the
+  API; loader reads it if present). Build script: OpenMapTiles rule `max(5, round(height
+  or levels × 3.66 or 5))` — checked against the basemap's `render_height` for all 7
+  roof/facade buildings (MER-01/MER-04 11 m, LAN-02 15 m, others 5 m). `map3d.js`:
+  ground fill/outline only for NbS without height; `nbs-roof` fill-extrusion slab
+  (base = height, +1.2 m, selected +2.5 m); `nbs-wall` from source `nbs-walls` (facade
+  line → 1 m strips in the browser); `nbs-building` grey block only on backgrounds
+  without 3D buildings (satellite, light); click/hover work on all. 21 tests OK
 - **Real NbS shapes (2026-11-02, on `main`, merged into `maplibre-prototype`):** my request: "if this NbS is a green roof
   of a sports hall it should be exactly on the sports hall". All 29 sample shapes are now
   real OSM features, made by `scripts/build_sample_shapes.py` (recipes `area`, `wall`,

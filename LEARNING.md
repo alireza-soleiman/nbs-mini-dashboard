@@ -466,6 +466,12 @@ _Built: 2026-11-02. Details: [docs/GUIDE.md](docs/GUIDE.md) §4.1._
 - **A style is everything:** `setStyle()` replaces all layers, ours too, so they are
   added again on every `style.load`.
 - **Shared code:** `popup.js` and `panel.js` serve both maps, so they cannot drift apart.
+- **Roofs on 3D buildings:** a flat green roof disappeared inside the basemap's 3D
+  building. Now `NbS.height_m` (from OSM, by the basemap's own rule: `height`, else
+  floors × 3.66 m, else 5 m) lifts it: a `fill-extrusion` slab from `height` to
+  `height + 1.2 m`. Facades: the wall line becomes a 1 m strip, extruded to the roof.
+  Measured first: the basemap's `render_height` (read from the vector tiles with
+  `querySourceFeatures`) matched the rule for all 7 buildings.
 - **Testing lesson:** a hidden browser pane gives MapLibre no frames; I replaced
   `requestAnimationFrame` with a timer (test only) and copied the WebGL canvas into an
   image to see it.

@@ -85,7 +85,7 @@ compose.yaml   the two services: db (PostGIS) and web (Django)
 docker compose exec web python manage.py test
 ```
 
-20 tests (API, shapes, summary, admin, pages). The manual checklist is in
+21 tests (API, shapes, summary, admin, pages). The manual checklist is in
 [docs/GUIDE.md](docs/GUIDE.md#8-testing-all-features).
 
 ## Data sources and licences

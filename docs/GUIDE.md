@@ -123,6 +123,7 @@ ranking, drawn with **MapLibre GL JS** instead of Leaflet, to compare the two.
 | **3D terrain** | Real heights from free elevation tiles (Terrarium, AWS Open Data), not exaggerated. Untick it for a flat map. |
 | **Look from above / Tilt to 3D** | Switch between the straight-down view and the tilted view. |
 | **Priorities** | The five presets. Sliders for single criteria are only on the 2D map. |
+| **Green roofs and facades** | Drawn up high: a roof is a coloured slab **on top of its real building**, a facade a coloured **wall** from the ground to the roof. The height (`height_m` from the API) follows the background's rule: OSM `height`, else floors × 3.66 m, else 5 m. On *Satellite* and *Light* (no 3D buildings) a plain grey block carries the roof. |
 | **Click, hover, list, address** | As on the 2D map: fly to the NbS, then the popup with the points; `#nbs=<id>` in the address; hovering shows rank, name and score. No type or municipality filters. |
 
 Where things come from: our data from the same `/api/nbs/` and `/api/municipalities/`;
@@ -214,7 +215,8 @@ To move an NbS to another real building, street or meadow:
 3. Run `docker compose exec web python scripts/build_sample_shapes.py` (new shapes and
    costs), then `load_sample_nbs`, and check the municipality it prints.
 
-A shape edited by hand in QGIS is overwritten the next time the script runs.
+For roofs and facades the script also writes the building height (`height_m`) from the
+OSM tags. A shape edited by hand in QGIS is overwritten the next time the script runs.
 
 ### 7.3 Use your own NbS file
 
@@ -281,12 +283,13 @@ docker compose exec web python manage.py createsuperuser --noinput
 docker compose exec web python manage.py test
 ```
 
-Expected: `Ran 20 tests … OK`. They run in a separate, empty test database and check:
+Expected: `Ran 21 tests … OK`. They run in a separate, empty test database and check:
 GeoJSON with lon/lat coordinates; one SQL query per list (no N+1); polygons with area
 and lines with length; the marker point inside a shape; the municipality found from a
 shape; the distance filter reaching any part of a line; all filters and their errors
 (400); the summary totals; municipality and type endpoints; the locked boundaries in
-the admin; and that the three pages and their files are delivered.
+the admin; the building height for roofs; and that the three pages and their files are
+delivered.
 
 ### 8.2 Manual checklist (with the sample data: 29 NbS)
 
@@ -335,6 +338,9 @@ the admin; and that the three pages and their files are delivered.
 - [ ] Click a circle → the map flies there, then the popup opens; × closes it and the
       `#nbs=…` disappears from the address. Click a municipality → its popup and ISTAT code.
 - [ ] Open `/map-3d/#nbs=34` in a new tab → POS-01 opens.
+- [ ] Zoom to MER-07 and tilt: a blue slab lies **on** the grey 3D sports hall (not inside
+      it, not floating). MER-04: a blue wall on the office building. On *Satellite* the
+      roofs sit on grey blocks. Click a roof → its popup opens.
 
 **Admin and data flow**
 - [ ] In the admin, add a test NbS and draw a **polygon** in Merano → after saving, its
