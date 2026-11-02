@@ -115,8 +115,20 @@ city where Eurac is based as an example in this project.
   switches keep popup + selection, deep link. Basemap warning "Expected value to be of
   type number, but found null" = OpenFreeMap `building-3d` (harmless).
   South Tyrol WMS orthophotos tested and rejected (patchy coverage per year)
-- **Next step:** compare the 3D prototype with the 2D map, then decide: merge it into
-  `main` (and push), keep improving it, or drop it. After that, **Phase 3**
+- **Real NbS shapes (2026-11-02, on `main`, merged into `maplibre-prototype`):** my request: "if this NbS is a green roof
+  of a sports hall it should be exactly on the sports hall". All 29 sample shapes are now
+  real OSM features, made by `scripts/build_sample_shapes.py` (recipes `area`, `wall`,
+  `stretch`, `middle`, `spot` + OSM way ids; costs = unit cost × real size, rounded to
+  €5K; `osm` property in the GeoJSON; texts adjusted where the real place differs, e.g.
+  NAT-02 town hall, TIR-02 park on a meadow). Downloads cached in
+  `data/raw/osm/nbs_sources.json` via the OSM API (Overpass was 502/504 most of the
+  day; Overpass needs a User-Agent, else HTTP 406). Checked: municipality of every NbS
+  (LAG-03 and POS-02 fixed with PostGIS checks; the Adige is the Postal–Lana border north
+  of 46.6068), screenshots of MER-07/MAR-02/CER-01/POS-02/LAN-01. New numbers in GUIDE
+  §5 and §8.2 (Balanced top MER-05 83, last MER-04 49; Flood POS-01 83; Low budget
+  MER-05 85; totals €8.3M, 3.8 ha, 5.1 km). Licence ODbL noted in both READMEs
+- **Next step:** improve the 3D map (my wish after the real shapes), then decide: merge
+  it into `main` (and push), keep improving it, or drop it. After that, **Phase 3**
   (Milestone 8, handover quality) — **waiting for my go-ahead**. Ideas in
   `LEARNING.md`; Playwright end-to-end tests are a good candidate
 - **Open questions / blockers:** the old `data/sample/nbs_sample.csv` is no longer in Git

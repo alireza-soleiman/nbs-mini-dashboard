@@ -12,9 +12,10 @@ learning project:
 - a **3D map** (prototype) with the same NbS and ranking on a vector map with 3D
   terrain and satellite photos, drawn with MapLibre GL JS.
 
-> **The NbS data is fictional.** The 29 sample NbS in 11 municipalities around Merano
-> were invented for learning (see `data/sample/README.md`). The place names and the
-> municipality boundaries (ISTAT) are real.
+> **The NbS data is fictional, the places are real.** The 29 sample NbS in 11
+> municipalities around Merano were invented for learning (see `data/sample/README.md`),
+> but each one lies on a real OpenStreetMap feature: a real roof, street, river or
+> meadow. The municipality boundaries (ISTAT) are real too.
 
 **Stack:** Django 5.2 + GeoDjango · PostgreSQL 17 + PostGIS 3.5 · Django REST Framework +
 djangorestframework-gis · Leaflet 1.9.4 · MapLibre GL JS 5.24 (3D map) · Docker Compose.
@@ -96,4 +97,6 @@ docker compose exec web python manage.py test
   (Mapzen/Tilezen, AWS Open Data) · satellite: Sentinel-2 cloudless 2023 by
   [EOX IT Services GmbH](https://cloudless.eox.at) (contains modified Copernicus Sentinel
   data 2023), **CC BY-NC-SA 4.0 = non-commercial use only**.
-- NbS sample data: fictional, created for this project.
+- NbS sample data: fictional, created for this project. Their shapes: © OpenStreetMap
+  contributors, [ODbL 1.0](https://www.openstreetmap.org/copyright) (made by
+  `scripts/build_sample_shapes.py`).
