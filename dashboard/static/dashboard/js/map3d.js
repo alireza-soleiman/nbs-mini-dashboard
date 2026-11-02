@@ -81,7 +81,14 @@ const SELECTED = ['boolean', ['feature-state', 'selected'], false];
 const HOVER = ['boolean', ['feature-state', 'hover'], false];
 const IS_POLYGON = ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false];
 const IS_LINE = ['match', ['geometry-type'], ['LineString', 'MultiLineString'], true, false];
-const NBS_LAYERS = ['nbs-marker', 'nbs-line', 'nbs-fill']; // what a click or hover can hit
+// Green roofs and facades have a building height (from the API): they are drawn up high
+const HEIGHT = ['coalesce', ['get', 'height_m'], 0];
+const UP_HIGH = ['>', HEIGHT, 0];
+const ROOF = ['all', IS_POLYGON, UP_HIGH];
+const ON_GROUND = ['all', IS_POLYGON, ['!', UP_HIGH]];
+// What a click or hover can hit, top one first
+const NBS_LAYERS = ['nbs-marker', 'nbs-roof', 'nbs-wall', 'nbs-building', 'nbs-line', 'nbs-fill'];
+const WALL_HALF_WIDTH = 0.5; // metres: a facade is drawn as a 1 m thick wall
 
 const EMPTY = { type: 'FeatureCollection', features: [] };
 
@@ -159,6 +166,7 @@ function firstLayer(...types) {
 function addOverlay() {
   const labels = firstLayer('symbol'); // our shapes go UNDER the basemap's labels
   const outline = state.basemap === 'satellite' ? '#ffffff' : '#6b6a66';
+  const basemapHas3dBuildings = Boolean(firstLayer('fill-extrusion')); // asked before ours are added
 
   map.addSource('municipalities', {
     type: 'geojson',
@@ -167,6 +175,7 @@ function addOverlay() {
   });
   map.addSource('nbs', { type: 'geojson', data: nbsData() });
   map.addSource('nbs-markers', { type: 'geojson', data: markerData() });
+  map.addSource('nbs-walls', { type: 'geojson', data: wallData() });
 
   map.addLayer({
     id: 'municipality-fill', type: 'fill', source: 'municipalities',
@@ -177,14 +186,14 @@ function addOverlay() {
     paint: { 'line-color': outline, 'line-width': 1, 'line-opacity': 0.8 },
   }, labels);
 
-  // Polygons: area + outline. Sort key = score: the best NbS is drawn on top
+  // Polygons on the ground: area + outline. Sort key = score: the best NbS is drawn on top
   map.addLayer({
-    id: 'nbs-fill', type: 'fill', source: 'nbs', filter: IS_POLYGON,
+    id: 'nbs-fill', type: 'fill', source: 'nbs', filter: ON_GROUND,
     layout: { 'fill-sort-key': SCORE },
     paint: { 'fill-color': SCORE_COLOR, 'fill-opacity': ['case', SELECTED, 0.6, 0.4] },
   }, labels);
   map.addLayer({
-    id: 'nbs-outline', type: 'line', source: 'nbs', filter: IS_POLYGON,
+    id: 'nbs-outline', type: 'line', source: 'nbs', filter: ON_GROUND,
     layout: { 'line-sort-key': SCORE, 'line-join': 'round' },
     paint: { 'line-color': SCORE_COLOR, 'line-width': ['case', SELECTED, 4, 2] },
   }, labels);
@@ -199,6 +208,35 @@ function addOverlay() {
     layout: { 'line-sort-key': SCORE, 'line-cap': 'round', 'line-join': 'round' },
     paint: { 'line-color': SCORE_COLOR, 'line-width': ['case', SELECTED, 8, 5] },
   }, labels);
+
+  // Up high: fill-extrusion = a 3D block from `base` to `height` metres above the ground.
+  // Backgrounds without 3D buildings (satellite, light) get a plain block under each roof,
+  // otherwise the roof would float. (On "Map" the basemap draws that building already.)
+  if (!basemapHas3dBuildings) {
+    map.addLayer({
+      id: 'nbs-building', type: 'fill-extrusion', source: 'nbs', filter: ROOF,
+      paint: { 'fill-extrusion-color': '#d6d3cc', 'fill-extrusion-height': HEIGHT, 'fill-extrusion-opacity': 0.9 },
+    });
+  }
+  // Green roof: a slab on top of the building, in the colour of its score
+  map.addLayer({
+    id: 'nbs-roof', type: 'fill-extrusion', source: 'nbs', filter: ROOF,
+    paint: {
+      'fill-extrusion-color': SCORE_COLOR,
+      'fill-extrusion-base': HEIGHT,
+      'fill-extrusion-height': ['+', HEIGHT, ['case', SELECTED, 2.5, 1.2]],
+      'fill-extrusion-opacity': 0.95,
+    },
+  });
+  // Green facade: a 1 m thick wall from the ground up to the building height
+  map.addLayer({
+    id: 'nbs-wall', type: 'fill-extrusion', source: 'nbs-walls',
+    paint: {
+      'fill-extrusion-color': SCORE_COLOR,
+      'fill-extrusion-height': ['+', HEIGHT, ['case', SELECTED, 2, 0.5]],
+      'fill-extrusion-opacity': 0.95,
+    },
+  });
 
   // One circle per NbS, above everything (like the Leaflet markers); rank 1–3 inside
   map.addLayer({
@@ -249,6 +287,37 @@ function markerData() {
       properties: { score, rank },
     })),
   };
+}
+
+/** Green facades as thin areas: fill-extrusion needs an area, our facade is a line along
+    the wall. Each piece of the line becomes a strip 1 m wide, half of it inside the wall. */
+function wallData() {
+  const strips = state.rows
+    .filter(({ feature }) => feature.properties.height_m && feature.geometry.type === 'LineString')
+    .map(({ feature, score, rank }) => {
+      const line = feature.geometry.coordinates;
+      // Metres per degree here: longitude degrees get shorter towards the poles
+      const mx = 111320 * Math.cos((line[0][1] * Math.PI) / 180);
+      const my = 110574;
+      const quads = line.slice(1).map((q, i) => {
+        const p = line[i];
+        const dx = (q[0] - p[0]) * mx;
+        const dy = (q[1] - p[1]) * my;
+        const length = Math.hypot(dx, dy) || 1;
+        // Sideways (perpendicular) by WALL_HALF_WIDTH metres, back in degrees
+        const ox = (-dy / length) * WALL_HALF_WIDTH / mx;
+        const oy = (dx / length) * WALL_HALF_WIDTH / my;
+        return [[[p[0] + ox, p[1] + oy], [q[0] + ox, q[1] + oy], [q[0] - ox, q[1] - oy],
+          [p[0] - ox, p[1] - oy], [p[0] + ox, p[1] + oy]]];
+      });
+      return {
+        type: 'Feature',
+        id: feature.id,
+        geometry: { type: 'MultiPolygon', coordinates: quads },
+        properties: { score, rank, height_m: feature.properties.height_m },
+      };
+    });
+  return { type: 'FeatureCollection', features: strips };
 }
 
 // --- Start ------------------------------------------------------------------------------
@@ -364,6 +433,7 @@ function rerank() {
   // New scores into the map data: the colour expressions do the rest
   map.getSource('nbs')?.setData(nbsData());
   map.getSource('nbs-markers')?.setData(markerData());
+  map.getSource('nbs-walls')?.setData(wallData());
   renderRanking(el.ranking, state.rows, {
     selectedId: state.selectedId,
     onSelect: selectNbs,
@@ -419,9 +489,8 @@ function setSelected(id) {
 /** Feature state = how a feature looks right now (selected, hover); no data are reloaded. */
 function setNbsState(id, values) {
   if (!map.getSource('nbs')) return; // the background is switching; addOverlay() sets it again
-  // Shape and circle share the id, so both light up
-  map.setFeatureState({ source: 'nbs', id }, values);
-  map.setFeatureState({ source: 'nbs-markers', id }, values);
+  // Shape, circle and wall share the id, so all of them light up
+  for (const source of ['nbs', 'nbs-markers', 'nbs-walls']) map.setFeatureState({ source, id }, values);
 }
 
 function selectFromAddress() {
@@ -458,7 +527,8 @@ function closePopup() {
 function nbsAt(point) {
   if (!map.getLayer('nbs-marker')) return null; // the background is switching
   const box = [[point.x - 5, point.y - 5], [point.x + 5, point.y + 5]];
-  return map.queryRenderedFeatures(box, { layers: NBS_LAYERS })[0] ?? null;
+  const layers = NBS_LAYERS.filter((id) => map.getLayer(id)); // 'nbs-building' only on some backgrounds
+  return map.queryRenderedFeatures(box, { layers })[0] ?? null;
 }
 
 map.on('click', (event) => {
