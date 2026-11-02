@@ -116,6 +116,16 @@ class CatalogApiTests(APITestCase):
         # Within 100 m of the line's END point, although its start is ~3 km away
         self.assertIn('River', self.names(near='11.1597,46.6713', radius=100))
 
+    def test_height_is_sent_for_roofs_and_empty_on_the_ground(self):
+        # The 3D map puts a roof at the building height; NbS on the ground have none
+        roof = make_nbs('High roof', 'green_roof', metre_square(11.17, 46.66, 20))
+        roof.height_m = 11
+        roof.save()
+        heights = {f['properties']['name']: f['properties']['height_m']
+                   for f in self.client.get('/api/nbs/').json()['features']}
+        self.assertEqual(heights['High roof'], 11)
+        self.assertIsNone(heights['Pond far away'])
+
     def test_bad_near_returns_400(self):
         self.assertEqual(self.client.get('/api/nbs/', {'near': 'Merano'}).status_code, 400)
 

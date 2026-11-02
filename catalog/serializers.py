@@ -32,7 +32,7 @@ class NbSSerializer(GeoFeatureModelSerializer):
             'id', 'geometry', 'code', 'name', 'nbs_type', 'nbs_type_label', 'description',
             'cost_eur', 'benefit_heat', 'benefit_flood', 'benefit_biodiversity',
             'benefit_wellbeing', 'municipality', 'geometry_type', 'marker',
-            'area_m2', 'length_m',
+            'area_m2', 'length_m', 'height_m',
         ]
 
     def get_marker(self, nbs):

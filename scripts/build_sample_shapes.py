@@ -12,7 +12,8 @@ What the script does:
   1. reads data/sample/nbs_sample.geojson (names, types, descriptions, benefits)
   2. downloads the OSM elements named in SHAPES (once; cached in data/raw/osm/)
   3. builds each shape: a whole area, one wall, a stretch of a line, or one point
-  4. cost = unit cost of the type x real size (m² or m), rounded to EUR 5,000
+  4. cost = unit cost of the type x real size (m² or m), rounded to EUR 5,000;
+     roofs and facades also get the building height (height_m) for the 3D map
   5. writes the GeoJSON back, one feature per line
 
 OSM data © OpenStreetMap contributors, ODbL 1.0 (https://www.openstreetmap.org/copyright).
@@ -228,6 +229,20 @@ def build(recipe, elements):
     return line.interpolate(line.project(near))  # 'spot'
 
 
+def building_height(tags):
+    """Height in whole metres by the rule of the basemap (OpenMapTiles, as drawn by
+    OpenFreeMap): the `height` tag, else floors × 3.66 m, else 5 m, at least 5 m.
+    The same rule as the basemap, so a green roof lands exactly on the 3D building."""
+    try:
+        height = float(tags['height'].split()[0])
+    except (KeyError, ValueError):
+        try:
+            height = float(tags['building:levels']) * 3.66
+        except (KeyError, ValueError):
+            height = 5
+    return max(5, round(height))
+
+
 def size(geom):
     return geom.area if geom.dims == 2 else geom.length  # dims: 0 point, 1 line, 2 area
 
@@ -260,10 +275,15 @@ def main():
         geom = build(recipe, elements)
         if p['nbs_type'] in UNIT_COST:
             p['cost_eur'] = max(5000, round(UNIT_COST[p['nbs_type']] * size(geom) / 5000) * 5000)
+        if recipe['kind'] in ('area', 'wall') and p['nbs_type'] in ('green_roof', 'green_facade'):
+            p['height_m'] = building_height(elements[recipe['ids'][0]]['tags'])
+        else:
+            p.pop('height_m', None)  # on the ground
         p['osm'] = ' '.join(recipe['ids'])
         unit = {2: 'm²', 1: 'm'}.get(geom.dims, '')
-        print(f"{p['code']:7} {geom.geom_type:10} {size(geom):8.0f} {unit:2} EUR {p['cost_eur']:>9,}  "
-              f"{p['osm']}")
+        height = f"{p['height_m']:>3} m high" if 'height_m' in p else ' ' * 10
+        print(f"{p['code']:7} {geom.geom_type:10} {size(geom):8.0f} {unit:2} EUR {p['cost_eur']:>9,} "
+              f"{height}  {p['osm']}")
         feature['geometry'] = rounded(geom)
 
     collection['description'] = ('FICTIONAL sample NbS around Merano for a learning project; '

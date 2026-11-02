@@ -50,6 +50,7 @@ class Command(BaseCommand):
             created = nbs.pk is None
             for field in FIELDS:
                 setattr(nbs, field, props[field])
+            nbs.height_m = props.get('height_m')  # optional: only roofs and facades have one
             # GeoJSON is always lon/lat (EPSG:4326); Django transforms it to 25832 on save
             nbs.geom = GEOSGeometry(json.dumps(feature['geometry']), srid=4326)
 

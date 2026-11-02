@@ -29,6 +29,7 @@ Properties:
 | `description` | one sentence |
 | `cost_eur` | estimated total cost in euro: unit cost of the type × real size, rounded to €5,000 |
 | `benefit_heat`, `benefit_flood`, `benefit_biodiversity`, `benefit_wellbeing` | 0 (none) … 5 (very high) |
+| `height_m` | only green roofs and facades: building height in whole metres (OSM `height`, else floors × 3.66 m, else 5 m), for the 3D map |
 | `osm` | the OpenStreetMap element(s) the shape comes from (not loaded into the database) |
 
 The shapes and costs are made by `scripts/build_sample_shapes.py` (it downloads the OSM

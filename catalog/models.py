@@ -66,6 +66,12 @@ class NbS(models.Model):
     # Any geometry type: a point (rain garden), a line (street trees, a river)
     # or a polygon (green roof, park, wetland)
     geom = models.GeometryField(srid=SRID, help_text='A point, a line or a polygon.')
+    # Roofs and facades are high up: the height of the building in whole metres, so 3D
+    # maps can put the NbS on top of (or along) the building. Empty for NbS on the ground.
+    height_m = models.PositiveSmallIntegerField(
+        'height (m)', null=True, blank=True,
+        help_text='Building height for green roofs and facades (3D maps). Empty = on the ground.',
+    )
     # Not typed in by hand: save() finds it from the geometry
     municipality = models.ForeignKey(
         Municipality,
