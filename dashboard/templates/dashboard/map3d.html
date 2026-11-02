@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}3D map (beta) · NbS mini-dashboard{% endblock %}
+{% block body_class %}page-map page-map3d{% endblock %}
+
+{% block head %}
+  <!-- MapLibre GL JS 5.24.0 (open source, BSD licence) from cdnjs, with integrity fingerprints -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.24.0/maplibre-gl.css"
+        integrity="sha512-KIMsMWIdnoG9OwZa+oaIafmbDonqck1UCmq+/zcUi2aaZ97N9QE6TqpTM+n36EO40HGh64hU/375zxtjx7WTyQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+{% endblock %}
+
+{% block content %}
+<main class="map-layout" id="map-layout">
+  <aside class="sidebar" id="sidebar" aria-label="3D view, priorities and ranking">
+    <button class="sheet-handle" id="sheet-handle" type="button" aria-expanded="false">
+      <span aria-hidden="true"></span><span class="visually-hidden">Show or hide the list</span>
+    </button>
+
+    <div class="sidebar-summary" id="summary" aria-live="polite"></div>
+    <p id="status" class="status" role="status">Loading…</p>
+
+    <section class="panel panel-body-only">
+      <div class="panel-body">
+        <p class="prototype-note">
+          <strong>Prototype</strong> · the same NbS and ranking as the 2D map, drawn with
+          MapLibre: vector map, 3D terrain, tilt and rotate (right mouse button or two fingers).
+        </p>
+        <span class="field-label" id="basemap-label">Background</span>
+        <div class="presets" id="basemaps" role="group" aria-labelledby="basemap-label"></div>
+        <label class="toggle"><input type="checkbox" id="terrain-toggle" checked> 3D terrain</label>
+        <button type="button" class="preset" id="view-toggle">Look from above</button>
+      </div>
+    </section>
+
+    <section class="panel panel-body-only">
+      <div class="panel-body">
+        <span class="field-label" id="preset-label">Priorities</span>
+        <div class="presets" id="presets" role="group" aria-labelledby="preset-label"></div>
+        <p class="prototype-note">A slider for each criterion: on the <a href="{% url 'map' %}">2D map</a>.</p>
+      </div>
+    </section>
+
+    <section class="panel ranking-panel" aria-labelledby="ranking-title">
+      <div class="ranking-head">
+        <h2 id="ranking-title">Ranking</h2>
+        <div id="legend" class="legend" aria-label="Score colours"></div>
+      </div>
+      <ol id="ranking" class="ranking"></ol>
+    </section>
+  </aside>
+
+  <div id="map" aria-label="3D map of the NbS and the municipalities"></div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.24.0/maplibre-gl.js"
+        integrity="sha512-rOFgoUgWaVi69JW1dzBu6PWF9xKW9rxYfY5u2SexFABHhWk0qUWkJoWNz4UuZRMvSXsNZG66+tU5B+HlwWF5kA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="module" src="{% static 'dashboard/js/map3d.js' %}"></script>
+{% endblock %}

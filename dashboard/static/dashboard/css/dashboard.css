@@ -357,6 +357,22 @@ path.leaflet-interactive:focus { outline: none; }
 .popup .num { text-align: right; font-variant-numeric: tabular-nums; }
 .popup tfoot td { font-weight: 700; border-bottom: 0; }
 
+/* 3D map (prototype) */
+.nav small { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; opacity: 0.75; }
+.panel-body-only .panel-body { padding-top: 0.8rem; }
+.prototype-note { margin: 0; font-size: 0.8rem; color: var(--ink-2); }
+.toggle { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; }
+.toggle input { accent-color: var(--brand); width: 16px; height: 16px; }
+#view-toggle { justify-self: start; }
+.page-map3d .maplibregl-popup-content { padding: 0.7rem 0.8rem; border-radius: 10px; max-width: 340px; }
+/* Hover label on the 3D map (a MapLibre popup without close button that follows the mouse) */
+.map-tip { pointer-events: none; }
+.map-tip .maplibregl-popup-content {
+  padding: 0.35rem 0.55rem; border-radius: 6px; background: var(--ink); color: var(--surface);
+  font-size: 0.78rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+.map-tip .maplibregl-popup-tip { display: none; }
+
 /* People who switched on "reduce motion" in their system get no sliding panels */
 @media (prefers-reduced-motion: reduce) {
   .map-layout, .sidebar, .sidebar-toggle, .nbs-marker span { transition: none; }

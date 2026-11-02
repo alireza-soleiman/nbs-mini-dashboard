@@ -4,7 +4,7 @@
 
 The charts, the map and the ranking run in the browser (JavaScript); see
 docs/GUIDE.md for the manual checklist. These tests check that Django delivers
-both pages, the API addresses they need, and their files.
+the pages, the API addresses they need, and their files.
 """
 
 from django.contrib.staticfiles import finders
@@ -40,8 +40,21 @@ class DashboardPageTests(TestCase):
         for attribute in self.API_ATTRIBUTES:
             self.assertIn(attribute, html)
 
+    def test_map3d_page(self):
+        response = self.client.get('/map-3d/')
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn('id="map"', html)
+        self.assertIn('dashboard/js/map3d.js', html)
+        self.assertIn('aria-current="page">3D map', html)
+        # MapLibre from the CDN, pinned to one version and protected by its fingerprint
+        self.assertRegex(html, r'maplibre-gl/5\.24\.0/maplibre-gl\.js"\s+integrity="sha512-')
+        for attribute in self.API_ATTRIBUTES:
+            self.assertIn(attribute, html)
+
     def test_javascript_and_css_files_exist(self):
-        for name in ['api.js', 'ranking.js', 'colors.js', 'format.js', 'map.js', 'overview.js']:
+        for name in ['api.js', 'ranking.js', 'colors.js', 'format.js', 'popup.js', 'panel.js',
+                     'map.js', 'map3d.js', 'overview.js']:
             with self.subTest(file=name):
                 self.assertIsNotNone(finders.find(f'dashboard/js/{name}'))
         self.assertIsNotNone(finders.find('dashboard/css/dashboard.css'))
