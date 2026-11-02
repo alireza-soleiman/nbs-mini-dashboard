@@ -7,8 +7,10 @@
 //   priorities (presets, sliders)       -> rankNbs() in the browser      (instant, no server call)
 
 import { getJSON } from './api.js';
-import { SCORE_CLASSES, scoreClass } from './colors.js';
-import { escapeHtml, euro, euroShort, formatScore, formatSize } from './format.js';
+import { scoreClass } from './colors.js';
+import { escapeHtml, formatScore } from './format.js';
+import { legendHtml, markSelectedCard, renderRanking, summaryHtml } from './panel.js';
+import { popupHtml } from './popup.js';
 import { CRITERIA, PRESETS, rankNbs } from './ranking.js';
 
 const API = document.body.dataset;  // nbsUrl, municipalitiesUrl, typesUrl: written by Django
@@ -292,7 +294,8 @@ function rebuildNbsLayers() {
     const marker = L.marker([lat, lon], { keyboard: true });
     marker.bindTooltip('', { direction: 'top', offset: [0, -14] });
     // A function: the popup is built when it opens, so it always shows the current score
-    marker.bindPopup(() => popupHtml(state.rowById.get(id)), { maxWidth: 340, autoPanPadding: [30, 30] });
+    marker.bindPopup(() => popupHtml(state.rowById.get(id), state.rows.length),
+      { maxWidth: 340, autoPanPadding: [30, 30] });
     marker.on('click', () => selectNbs(id));
     marker.on('popupclose', () => { if (state.selectedId === id) setSelected(null); });
     markerLayer.addLayer(marker);
@@ -365,11 +368,7 @@ function selectNbs(id) {
 function setSelected(id) {
   state.selectedId = id;
   updateNbsLayers();
-  for (const card of el.ranking.querySelectorAll('.nbs-card')) {
-    const on = Number(card.dataset.id) === id;
-    card.classList.toggle('is-selected', on);
-    if (on) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
+  markSelectedCard(el.ranking, id);
   // The address can be shared: /map/#nbs=12 opens this NbS directly
   history.replaceState(null, '', id ? `#nbs=${id}` : location.pathname);
 }
@@ -379,72 +378,22 @@ function selectFromAddress() {
   if (id && nbsLayers.has(id)) selectNbs(id);
 }
 
-function popupHtml(row) {
-  const p = row.feature.properties;
-  const lines = CRITERIA.map((c) => {
-    const value = c.kind === 'benefit' ? `${p[c.key]} / 5` : euro.format(p[c.key]);
-    const points = row.score === null ? '–' : row.parts[c.key].toFixed(1);
-    return `<tr><td>${c.label}</td><td>${value}</td><td class="num">${points}</td></tr>`;
-  }).join('');
-  return `<div class="popup">
-    <div class="popup-code">${escapeHtml(p.code ?? '')}</div>
-    <strong>${escapeHtml(p.name)}</strong>
-    <div class="muted">${escapeHtml(p.nbs_type_label)} · ${escapeHtml(p.municipality ?? 'no municipality')}
-      · ${formatSize(p)}</div>
-    <p>${escapeHtml(p.description)}</p>
-    <table>
-      <thead><tr><th>Criterion</th><th>Value</th><th class="num">Points</th></tr></thead>
-      <tbody>${lines}</tbody>
-      <tfoot><tr><td colspan="2">Score · rank ${row.rank} of ${state.rows.length}</td>
-        <td class="num">${formatScore(row.score)}</td></tr></tfoot>
-    </table>
-  </div>`;
-}
 
 function drawRanking() {
-  if (!state.rows.length) {
-    el.ranking.innerHTML = '<li class="empty">No NbS match the filters.</li>';
-    return;
-  }
-  el.ranking.replaceChildren(...state.rows.map((row) => {
-    const p = row.feature.properties;
-    const { color, ink } = scoreClass(row.score);
-    const item = document.createElement('li');
-    item.innerHTML = `<button type="button" class="nbs-card" data-id="${row.feature.id}">
-        <span class="rank-badge" style="background:${color};color:${ink}">${row.rank}</span>
-        <span class="card-main">
-          <span class="card-name">${escapeHtml(p.name)}</span>
-          <span class="card-meta">${escapeHtml(p.nbs_type_label)} · ${escapeHtml(p.municipality ?? '–')}</span>
-          <span class="card-meta">${euro.format(p.cost_eur)} · ${formatSize(p)}</span>
-        </span>
-        <span class="card-score">${formatScore(row.score)}
-          <span class="bar"><span style="width:${row.score ?? 0}%;background:${color}"></span></span>
-        </span>
-      </button>`;
-    const card = item.firstElementChild;
-    card.classList.toggle('is-selected', row.feature.id === state.selectedId);
-    const { marker } = nbsLayers.get(row.feature.id);
-    card.addEventListener('click', () => selectNbs(row.feature.id));
+  renderRanking(el.ranking, state.rows, {
+    selectedId: state.selectedId,
+    onSelect: selectNbs,
     // Hovering a card highlights its marker
-    card.addEventListener('mouseenter', () => marker.getElement()?.classList.add('is-hover'));
-    card.addEventListener('mouseleave', () => marker.getElement()?.classList.remove('is-hover'));
-    return item;
-  }));
+    onHover: (id, on) => nbsLayers.get(id).marker.getElement()?.classList.toggle('is-hover', on),
+  });
 }
 
 function drawSummary() {
-  const cost = state.rows.reduce((sum, r) => sum + r.feature.properties.cost_eur, 0);
-  const places = new Set(state.rows.map((r) => r.feature.properties.municipality).filter(Boolean));
-  el.summary.innerHTML = `
-    <span><strong>${state.rows.length}</strong> NbS</span>
-    <span><strong>${euroShort.format(cost)}</strong> total cost</span>
-    <span><strong>${places.size}</strong> ${places.size === 1 ? 'municipality' : 'municipalities'}</span>`;
+  el.summary.innerHTML = summaryHtml(state.rows);
 }
 
 function drawLegend() {
-  const items = [...SCORE_CLASSES].reverse().map((c) =>
-    `<span class="legend-item"><span class="swatch" style="background:${c.color}"></span>${c.from}–${c.to}</span>`);
-  el.legend.innerHTML = `<span class="legend-title">Score</span>${items.join('')}`;
+  el.legend.innerHTML = legendHtml();
 }
 
 // --- Panels: collapse on desktop, bottom sheet on phones -----------------------
