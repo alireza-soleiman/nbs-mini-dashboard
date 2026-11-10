@@ -22,6 +22,9 @@
     <nav class="nav" aria-label="Pages">
       <a href="{% url 'overview' %}" {% if active == 'overview' %}aria-current="page"{% endif %}>Overview</a>
       <a href="{% url 'map' %}" {% if active == 'map' %}aria-current="page"{% endif %}>Map &amp; ranking</a>
+      {# Team demo: two pages that show ideas (mockups) #}
+      <a href="{% url 'compare' %}" {% if active == 'compare' %}aria-current="page"{% endif %}>Compare<span class="mock-tag">mockup</span></a>
+      <a href="{% url 'admin-mockup' %}" {% if active == 'admin' %}aria-current="page"{% endif %}>Admin<span class="mock-tag">mockup</span></a>
     </nav>
     <span class="badge-fictional" title="The NbS are invented for learning; the municipality boundaries are real (ISTAT).">
       Sample data · fictional

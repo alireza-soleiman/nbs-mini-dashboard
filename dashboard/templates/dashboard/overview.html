@@ -22,41 +22,64 @@
 
   <section class="charts">
     <article class="card">
-      <header><h2>NbS per type</h2><p>Number of NbS of each type</p></header>
+      <header><div><h2>NbS per type</h2><p>Number of NbS of each type</p></div>
+        <button type="button" class="options-button" data-options="types"
+              aria-haspopup="dialog">Other options<span class="visually-hidden"> for “NbS per type”</span></button></header>
       <div id="chart-types" class="bars"></div>
     </article>
 
     <article class="card">
-      <header><h2>Estimated cost per municipality</h2><p>Sum of all NbS costs</p></header>
+      <header><div><h2>Estimated cost per municipality</h2><p>Sum of all NbS costs</p></div>
+        <button type="button" class="options-button" data-options="cost"
+              aria-haspopup="dialog">Other options<span class="visually-hidden"> for “Estimated cost”</span></button></header>
       <div id="chart-municipalities" class="bars"></div>
     </article>
 
     <article class="card card-wide">
-      <header><h2>Benefit profile per type</h2>
-        <p>Average score from 0 (none) to 5 (very high); darker = higher</p></header>
+      <header><div><h2>Benefit profile per type</h2>
+        <p>Average score from 0 (none) to 5 (very high); darker = higher</p></div>
+        <button type="button" class="options-button" data-options="benefits"
+              aria-haspopup="dialog">Other options<span class="visually-hidden"> for “Benefit profile per type”</span></button></header>
       <div id="chart-heatmap" class="heatmap"></div>
     </article>
 
     <article class="card card-wide">
-      <header><h2>Cost and benefit of each NbS</h2>
+      <header><div><h2>Cost and benefit of each NbS</h2>
         <p>Each dot is one NbS. Up = more benefit (average of the 4 benefits);
-          left = cheaper. Top-left = good value.</p></header>
+          left = cheaper. Top-left = good value.</p></div>
+        <button type="button" class="options-button" data-options="value"
+              aria-haspopup="dialog">Other options<span class="visually-hidden"> for “Cost and benefit”</span></button></header>
       <div id="chart-scatter" class="scatter"></div>
     </article>
 
     <article class="card">
-      <header><h2>Top 5 with balanced priorities</h2>
-        <p>All five criteria weighted equally · click to see it on the map</p></header>
+      <header><div><h2>Top 5 with balanced priorities</h2>
+        <p>All five criteria weighted equally · click to see it on the map</p></div>
+        <button type="button" class="options-button" data-options="top"
+              aria-haspopup="dialog">Other options<span class="visually-hidden"> for “Top 5”</span></button></header>
       <ol id="top-five" class="top-list"></ol>
     </article>
 
     <article class="card">
-      <header><h2>Shapes on the map</h2><p>How the NbS are drawn</p></header>
+      <header><div><h2>Shapes on the map</h2><p>How the NbS are drawn</p></div></header>
       <div id="chart-shapes" class="bars"></div>
     </article>
   </section>
 
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+  <!-- Team demo: other ways to show one section. Filled by overview.js -->
+  <aside id="options-panel" class="drawer" role="dialog" aria-labelledby="options-title" hidden>
+    <header class="drawer-head">
+      <div>
+        <span class="mock-label">Mockup – sample data</span>
+        <h2 id="options-title"></h2>
+        <p id="options-question"></p>
+      </div>
+      <button type="button" class="drawer-close" id="options-close" aria-label="Close the options">×</button>
+    </header>
+    <div class="drawer-body" id="options-body"></div>
+  </aside>
 </main>
 {% endblock %}
 

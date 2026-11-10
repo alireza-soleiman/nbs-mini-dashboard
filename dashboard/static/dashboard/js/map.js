@@ -9,6 +9,7 @@
 import { getJSON } from './api.js';
 import { SCORE_CLASSES, scoreClass } from './colors.js';
 import { escapeHtml, euro, euroShort, formatScore, formatSize } from './format.js';
+import { ideas, scoreBarHtml, setupIdeas, syncCards } from './map-ideas.js';
 import { CRITERIA, PRESETS, rankNbs } from './ranking.js';
 
 const API = document.body.dataset;  // nbsUrl, municipalitiesUrl, typesUrl: written by Django
@@ -35,7 +36,7 @@ const el = Object.fromEntries([
 
 const map = L.map('map', { zoomControl: false }).setView(MERANO, 11);
 L.control.zoom({ position: 'topright' }).addTo(map);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }).addTo(map);
@@ -88,6 +89,14 @@ async function init() {
     buildPriorities();
     drawLegend();
     setupPanels();
+    // Team demo: the "More ideas" box (map-ideas.js). It may change the weights and
+    // asks for a redraw when a popup should explain its score in another way.
+    setupIdeas({
+      map, osmLayer, municipalities,
+      getWeights: () => state.weights,
+      setWeights: (weights) => { Object.assign(state.weights, weights); syncSliders(); rerank(); },
+      redraw: updateNbsLayers,
+    });
     await loadNbs({ fit: true });
     selectFromAddress();
   } catch (error) {
@@ -262,6 +271,7 @@ function syncSliders() {
     button.setAttribute('aria-pressed', String(button.dataset.key === active?.key));
   }
   el.presetNote.textContent = active ? active.label : 'custom';
+  syncCards(); // team demo: priorities as cards, if switched on
 }
 
 // --- Ranking: shapes, markers, list -----------------------------------------------
@@ -392,12 +402,12 @@ function popupHtml(row) {
     <div class="muted">${escapeHtml(p.nbs_type_label)} · ${escapeHtml(p.municipality ?? 'no municipality')}
       · ${formatSize(p)}</div>
     <p>${escapeHtml(p.description)}</p>
-    <table>
+    ${ideas.scoreAsBar ? scoreBarHtml(row, state.rows.length) : `<table>
       <thead><tr><th>Criterion</th><th>Value</th><th class="num">Points</th></tr></thead>
       <tbody>${lines}</tbody>
       <tfoot><tr><td colspan="2">Score · rank ${row.rank} of ${state.rows.length}</td>
         <td class="num">${formatScore(row.score)}</td></tr></tfoot>
-    </table>
+    </table>`}
   </div>`;
 }
 

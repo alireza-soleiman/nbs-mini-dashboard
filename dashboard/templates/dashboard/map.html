@@ -49,6 +49,31 @@
       <div class="panel-body">
         <div class="presets" id="presets" role="group" aria-label="Weight presets"></div>
         <div id="weights" class="weights"><!-- one slider per criterion --></div>
+        <!-- Team demo: the same weights as cards in order of importance (map-ideas.js) -->
+        <div id="cards" class="cards" hidden>
+          <span class="mock-label">Mockup – sample data</span>
+          <p>Most important at the top. Move a card up or down: the order sets the weights.</p>
+          <ol id="cards-list"></ol>
+        </div>
+      </div>
+    </details>
+
+    <!-- Team demo: ideas that are not decided yet. Each switch is filled by map-ideas.js -->
+    <details class="panel" id="ideas" open>
+      <summary><span>More ideas</span><span class="mock-label">Mockup – sample data</span></summary>
+      <div class="panel-body">
+        <span class="field-label" id="idea-heat-label">Heat vulnerability on the map</span>
+        <div class="presets" id="idea-heat" role="group" aria-labelledby="idea-heat-label"></div>
+        <div class="legend" id="idea-heat-legend" hidden></div>
+
+        <span class="field-label" id="idea-background-label">Map background</span>
+        <div class="presets" id="idea-background" role="group" aria-labelledby="idea-background-label"></div>
+
+        <span class="field-label" id="idea-priorities-label">Set priorities with</span>
+        <div class="presets" id="idea-priorities" role="group" aria-labelledby="idea-priorities-label"></div>
+
+        <span class="field-label" id="idea-score-label">Explain a score (in the popup) with</span>
+        <div class="presets" id="idea-score" role="group" aria-labelledby="idea-score-label"></div>
       </div>
     </details>
 

@@ -1,0 +1,36 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Compare (mockup) · NbS mini-dashboard{% endblock %}
+{% block body_class %}page-compare{% endblock %}
+
+{% block content %}
+<main class="overview">
+  <p class="mock-banner"><span class="mock-label">Mockup – sample data</span>
+    An idea, not a finished feature: put two or three NbS side by side before deciding.</p>
+
+  <section class="intro">
+    <div>
+      <h1>Compare NbS</h1>
+      <p>Choose two or three NbS and see where each one is stronger. The score uses
+        balanced priorities (all five criteria count the same).</p>
+    </div>
+  </section>
+
+  <p id="status" class="status" role="status">Loading…</p>
+
+  <section class="card compare-controls" aria-label="What to compare">
+    <div class="compare-picks" id="picks"><!-- three dropdowns, filled by compare.js --></div>
+    <div>
+      <span class="field-label" id="view-label">Show as</span>
+      <div class="presets" id="view" role="group" aria-labelledby="view-label"></div>
+    </div>
+  </section>
+
+  <section class="card" id="comparison" aria-live="polite"></section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'dashboard/js/compare.js' %}"></script>
+{% endblock %}

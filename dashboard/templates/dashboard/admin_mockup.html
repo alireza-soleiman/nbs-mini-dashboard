@@ -1,0 +1,163 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Admin (mockup) · NbS mini-dashboard{% endblock %}
+{% block body_class %}page-admin-mockup{% endblock %}
+
+{% block content %}
+{% comment %}
+  Team demo: an IDEA for a simple admin area. The buttons switch screens; nothing is saved.
+  (The real admin of this project is Django's, at /admin/.)
+{% endcomment %}
+<main class="overview admin-mock">
+  <p class="mock-banner"><span class="mock-label">Mockup – nothing is saved</span>
+    An idea for a simple admin area: researchers add the data and choose what municipalities see.
+    The buttons only switch screens.</p>
+
+  <section class="intro">
+    <div>
+      <h1>Admin</h1>
+      <p>Three steps: bring in the data, choose the criteria, choose what is shown.</p>
+    </div>
+    <a class="button button-primary" href="{% url 'overview' %}">View as municipality &rarr;</a>
+  </section>
+
+  <nav class="steps" id="steps" aria-label="Steps">
+    <button type="button" data-step="data" aria-current="step">
+      <span class="step-number">1</span><span><strong>Data</strong><small>Add and check the NbS</small></span></button>
+    <button type="button" data-step="criteria">
+      <span class="step-number">2</span><span><strong>Criteria</strong><small>What is compared, and how</small></span></button>
+    <button type="button" data-step="display">
+      <span class="step-number">3</span><span><strong>Display</strong><small>What municipalities see</small></span></button>
+  </nav>
+
+  <p id="status" class="status" role="status">Loading…</p>
+
+  <!-- ===== Step 1: Data ===== -->
+  <section class="step" id="step-data">
+    <!-- 1a: the table -->
+    <div class="card" data-view="table">
+      <header>
+        <div><h2>NbS in the catalogue</h2><p id="table-count"></p></div>
+        <div class="toolbar">
+          <button type="button" class="demo-button is-primary" data-go="form">+ Add an NbS</button>
+          <button type="button" class="demo-button" data-go="upload">Upload a file</button>
+          <button type="button" class="demo-button" data-toast="Mockup: the template (an Excel file with the right columns) would download now.">Download the template</button>
+        </div>
+      </header>
+      <div class="table-scroll">
+        <table class="demo-table">
+          <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Municipality</th>
+            <th class="num">Cost</th><th>Status</th><th></th></tr></thead>
+          <tbody id="nbs-rows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 1b: add or edit one NbS -->
+    <div class="card" data-view="form" hidden>
+      <header><div><h2 id="form-title">Add an NbS</h2><p>Fill in the form and draw the place on the map.</p></div></header>
+      <form class="form-grid" id="nbs-form">
+        <label class="wide">Name
+          <input class="demo-input" name="name" placeholder="e.g. Green roof on a library – Merano"></label>
+        <label>Type <select class="demo-input" name="nbs_type" id="form-type"></select></label>
+        <label>Estimated cost (€) <input class="demo-input" name="cost_eur" type="number" min="0" step="5000" placeholder="120000"></label>
+        <label class="wide">Description
+          <textarea class="demo-input" name="description" rows="2" placeholder="One sentence: what is planned?"></textarea></label>
+        <fieldset class="wide benefit-inputs" id="form-benefits">
+          <legend>Benefits, from 0 (none) to 5 (very high)</legend>
+        </fieldset>
+        <div class="wide">
+          <span class="form-label">Place</span>
+          <div class="map-placeholder">
+            <div class="toolbar">
+              <button type="button" class="demo-button" data-toast="Mockup: you would now click one point on the map.">Point</button>
+              <button type="button" class="demo-button" data-toast="Mockup: you would now click along a street or a river.">Line</button>
+              <button type="button" class="demo-button" data-toast="Mockup: you would now click around an area, e.g. a roof.">Area</button>
+            </div>
+            <p>Here is a map. Choose point, line or area and draw the place.<br>
+              The municipality is found from the place.</p>
+          </div>
+        </div>
+        <div class="wide form-actions">
+          <button type="button" class="demo-button is-primary" data-go="table" data-toast="Mockup: the NbS would be published now. Nothing was saved.">Publish</button>
+          <button type="button" class="demo-button" data-go="table" data-toast="Mockup: the NbS would be saved as a draft. Nothing was saved.">Save as draft</button>
+          <button type="button" class="demo-button is-quiet" data-go="table">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 1c: upload a file -->
+    <div class="card" data-view="upload" hidden>
+      <header><div><h2>Upload a file</h2><p>Add many NbS at once. The file is checked before anything is saved.</p></div></header>
+      <div class="dropzone">
+        <strong>Drop a file here</strong>
+        <span>Excel (.xlsx), CSV, GeoJSON or Shapefile (.zip)</span>
+        <div class="toolbar">
+          <button type="button" class="demo-button is-primary" data-go="check">Choose a file</button>
+          <button type="button" class="demo-button" data-go="check">Use the example file</button>
+        </div>
+      </div>
+      <div class="form-actions"><button type="button" class="demo-button is-quiet" data-go="table">&larr; Back to the table</button></div>
+    </div>
+
+    <!-- 1d: the check screen -->
+    <div class="card" data-view="check" hidden>
+      <header><div><h2>Check before importing</h2><p><strong>nbs_new.xlsx</strong> · 10 rows read</p></div></header>
+      <div class="check-summary">
+        <div class="check-tile is-ok"><strong>8</strong> rows are OK</div>
+        <div class="check-tile is-problem"><strong>2</strong> rows have a problem</div>
+      </div>
+      <div class="table-scroll">
+        <table class="demo-table">
+          <thead><tr><th>Row</th><th>Name</th><th>Type</th><th class="num">Cost</th><th>Result</th></tr></thead>
+          <tbody id="check-rows"></tbody>
+        </table>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="demo-button is-primary" data-go="table" data-toast="Mockup: the 8 correct rows would be added as drafts. Nothing was saved.">Import the 8 correct rows</button>
+        <button type="button" class="demo-button" data-go="upload">Fix the file and upload again</button>
+        <button type="button" class="demo-button is-quiet" data-go="table">Cancel</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Step 2: Criteria ===== -->
+  <section class="step" id="step-criteria" hidden>
+    <div class="card">
+      <header>
+        <div><h2>Criteria</h2><p>Municipalities compare the NbS with the criteria that are switched on.
+          The default weight is where the sliders start.</p></div>
+        <div class="toolbar"><button type="button" class="demo-button" id="add-criterion">+ Add a criterion</button></div>
+      </header>
+      <div class="table-scroll">
+        <table class="demo-table criteria-table">
+          <thead><tr><th>Shown</th><th>Name</th><th>Unit</th><th>Direction</th><th>Default weight</th></tr></thead>
+          <tbody id="criteria-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Step 3: Display ===== -->
+  <section class="step" id="step-display" hidden>
+    <div class="display-grid">
+      <div class="card">
+        <header><div><h2>Sections on the Overview page</h2>
+          <p>Switch a section on or off and put the sections in order.</p></div></header>
+        <ol class="display-list" id="display-list"></ol>
+      </div>
+      <div class="card">
+        <header><div><h2>Preview</h2><p>What municipalities see, from top to bottom</p></div></header>
+        <div class="display-preview" id="display-preview"></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'dashboard/js/admin-mockup.js' %}"></script>
+{% endblock %}
