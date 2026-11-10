@@ -15,6 +15,10 @@ source, e.g. `way/646089952` → https://www.openstreetmap.org/way/646089952.
 https://www.openstreetmap.org/copyright. This file is a derived database, so it is
 shared under the ODbL as well.
 
+**`nbs_demo.geojson`** (branch `team-demo`) holds 10 of these 29 NbS, unchanged: a small
+set for presentations, with every type in it. Load it with
+`load_sample_nbs --replace --file data/sample/nbs_demo.geojson`.
+
 Format: GeoJSON, EPSG:4326 (longitude, latitude). Each feature is a **Point** (rain
 gardens), **LineString** (street trees, rivers, facades) or **Polygon** (roofs, car parks,
 parks, ponds, wetlands). You can open and edit it in **QGIS** (Layer → Add Vector Layer).
