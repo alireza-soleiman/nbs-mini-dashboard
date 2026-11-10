@@ -340,7 +340,7 @@ the admin; and that both pages and their files are delivered.
 | Red message "Could not load…" | The API failed → `docker compose logs web` shows the error. |
 | `TemplateDoesNotExist` after adding a new app or template folder | The dev server only looks for template folders at start → `docker compose restart web`. |
 | Grey map without background | OpenStreetMap needs a Referer header → keep `SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'` in `config/settings.py`. |
-| A change is not visible | Reload (F5). For JavaScript/CSS changes use **Ctrl+F5** (the browser caches files). |
+| A change is not visible, or a new button does nothing | The browser shows the new page with an **old** copy of a JavaScript or CSS file. On `team-demo` the server prevents this (`Cache-Control: no-cache`, see `config/urls.py`): a normal reload (F5) is enough. On other branches press **Ctrl+F5**. |
 | `port is already allocated` | Another program uses the port; change `POSTGRES_HOST_PORT` in `.env`. |
 | A municipality's area looks wrong | Run `import_municipalities` again (restores all boundaries from ISTAT). |
 | `load_sample_nbs` says a code is missing or repeated | Every feature in the GeoJSON needs its own `code`. |
@@ -370,8 +370,10 @@ the admin; and that both pages and their files are delivered.
 ## 11. The team demo (branch `team-demo`)
 
 This branch is for **showing ideas to a team**. It is the normal dashboard plus
-mockups: things that could be built, shown inside the same pages. Every idea carries the
-label **"Mockup – sample data"** (the Admin page: "Mockup – nothing is saved").
+mockups: things that could be built, shown inside the same pages. Nothing is decided yet,
+so **everything is marked as a mockup**: all four tabs in the menu, the badge at the top
+right, a banner on the pages, and a small "Mockup" tag after every section title (one
+rule in `dashboard.css` adds it, so a new section gets it too).
 Sections 1–10 of this guide describe the `main` branch; the numbers in section 8.2 are
 for its 29 NbS and do **not** match this branch, which shows 10.
 

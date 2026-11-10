@@ -135,6 +135,16 @@ city where Eurac is based as an example in this project.
   3D branch's `height_m` column (migration 0003); harmless on `main`/`team-demo`.
   Gotchas: Django `{# #}` comments are one line only (use `{% comment %}`); a hidden
   browser pane freezes CSS animations mid-way (no opacity in animations)
+- **Demo fixes after my first test (2026-11-10):** (1) "Other options" did nothing in my
+  browser = **stale cache**: runserver's static handler sends no cache rule, so the
+  browser kept the 2-week-old `overview.js`. Fix on `team-demo`: `compose.yaml` runs
+  `runserver --nostatic`; `config/urls.py` serves `/static/` in DEBUG with
+  `Cache-Control: no-cache` (always revalidate, 304 if unchanged); templates use
+  `?v=demo2` once to skip the stale copies. Proved with a normal reload after a CSS
+  change. **Lesson for Claude: never work around a stale cache in tests with a forced
+  refresh; the user's browser has the same problem.** (2) My wish: **everything** is
+  marked mockup: all 4 nav tabs, the top badge ("Mockup – sample data"), a banner on the
+  Overview, and a CSS `::after` "Mockup" tag on every section title. 24 tests OK
 - **Next step:** the team meeting with `team-demo`; then the question file (Word/Excel)
   for the team. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**

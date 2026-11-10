@@ -488,6 +488,12 @@ _Details: [docs/GUIDE.md](docs/GUIDE.md) §11._
 - **Lessons:** a shell here-document broke on quotes in a long text → write the text to
   a file first; Django's `{# … #}` comment is one line only; test in light *and* dark
   mode and at phone width (the longer menu did not fit on a phone).
+- **Browser cache:** "Other options" did nothing in my browser, although it worked in
+  the test. The page was new, but the browser used its saved copy of `overview.js` from
+  two weeks before. Without a cache rule from the server, a browser guesses how long a
+  file stays fresh (about 10 % of its age). Fix: the server sends
+  `Cache-Control: no-cache` for static files in development = "keep a copy, but always
+  ask first"; the answer is a short `304 Not Modified` when nothing changed.
 
 ## Phase 3 — Handover quality (Milestone 8)
 
