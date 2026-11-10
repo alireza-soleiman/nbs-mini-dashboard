@@ -40,6 +40,10 @@ services:
   web:
     # Built from the Dockerfile in this folder
     build: .
+    # --nostatic: CSS and JavaScript are served by a URL rule in config/urls.py, which
+    # tells browsers to always ask for the newest version. With runserver's own static
+    # handler, browsers keep using old copies after a change (the page then looks broken).
+    command: python manage.py runserver --nostatic 0.0.0.0:8000
     # Django reads its settings and secrets from these environment variables
     env_file: .env
     environment:

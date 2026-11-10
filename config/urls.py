@@ -14,11 +14,23 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
-from django.urls import include, path
+from django.contrib.staticfiles.views import serve
+from django.urls import include, path, re_path
+from django.views.decorators.cache import cache_control
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('catalog.urls')),
     path('', include('dashboard.urls')),
 ]
+
+if settings.DEBUG:
+    # Development only (the server runs with --nostatic, see compose.yaml): serve CSS and
+    # JavaScript with "Cache-Control: no-cache" = "always ask the server first". Without
+    # a cache rule, a browser may show a new page with an OLD script for a day or more.
+    # (A production server delivers static files itself, with file names that change.)
+    urlpatterns += [
+        re_path(r'^static/(?P<path>.*)$', cache_control(no_cache=True)(serve)),
+    ]
