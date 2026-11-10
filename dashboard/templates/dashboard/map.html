@@ -51,7 +51,6 @@
         <div id="weights" class="weights"><!-- one slider per criterion --></div>
         <!-- Team demo: the same weights as cards in order of importance (map-ideas.js) -->
         <div id="cards" class="cards" hidden>
-          <span class="mock-label">Mockup – sample data</span>
           <p>Most important at the top. Move a card up or down: the order sets the weights.</p>
           <ol id="cards-list"></ol>
         </div>
@@ -60,7 +59,7 @@
 
     <!-- Team demo: ideas that are not decided yet. Each switch is filled by map-ideas.js -->
     <details class="panel" id="ideas" open>
-      <summary><span>More ideas</span><span class="mock-label">Mockup – sample data</span></summary>
+      <summary><span>More ideas</span></summary>
       <div class="panel-body">
         <span class="field-label" id="idea-heat-label">Heat vulnerability on the map</span>
         <div class="presets" id="idea-heat" role="group" aria-labelledby="idea-heat-label"></div>
@@ -99,5 +98,5 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <!-- type="module": the file can import the other JavaScript files -->
-<script type="module" src="{% static 'dashboard/js/map.js' %}"></script>
+<script type="module" src="{% static 'dashboard/js/map.js' %}?v=demo2"></script>
 {% endblock %}

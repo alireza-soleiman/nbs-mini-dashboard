@@ -6,6 +6,9 @@
 
 {% block content %}
 <main class="overview">
+  <p class="mock-banner"><span class="mock-label">Mockup – sample data</span>
+    Everything in this dashboard is a proposal for discussion. Nothing is final, and the data are invented.</p>
+
   <section class="intro">
     <div>
       <h1>Nature-Based Solutions around Merano</h1>
@@ -84,5 +87,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script type="module" src="{% static 'dashboard/js/overview.js' %}"></script>
+<script type="module" src="{% static 'dashboard/js/overview.js' %}?v=demo2"></script>
 {% endblock %}

@@ -69,6 +69,15 @@ class DashboardPageTests(TestCase):
                 for attribute in self.API_ATTRIBUTES:
                     self.assertIn(attribute, html)
 
+    def test_every_page_is_marked_as_mockup(self):
+        # Nothing is decided yet: all four tabs carry the tag, and every page the badge
+        for address in ['/', '/map/', '/compare/', '/admin-mockup/']:
+            with self.subTest(page=address):
+                html = self.client.get(address).content.decode()
+                self.assertEqual(html.count('class="mock-tag"'), 4)
+                self.assertIn('Mockup – sample data', html)
+        self.assertIn('class="mock-banner"', self.client.get('/').content.decode())
+
     def test_admin_mockup_does_not_hide_the_real_admin(self):
         # /admin/ stays Django's own admin (it sends visitors to its login page)
         self.assertEqual(self.client.get('/admin/').status_code, 302)

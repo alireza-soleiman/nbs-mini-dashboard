@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}NbS mini-dashboard{% endblock %}</title>
   {% block head %}{% endblock %}
-  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}?v=demo2">
 </head>
 {# Django writes the API addresses here, so the JavaScript does not hard-code them #}
 <body class="{% block body_class %}{% endblock %}"
@@ -20,14 +20,14 @@
       <span class="brand-mark" aria-hidden="true"></span>NbS mini-dashboard
     </a>
     <nav class="nav" aria-label="Pages">
-      <a href="{% url 'overview' %}" {% if active == 'overview' %}aria-current="page"{% endif %}>Overview</a>
-      <a href="{% url 'map' %}" {% if active == 'map' %}aria-current="page"{% endif %}>Map &amp; ranking</a>
-      {# Team demo: two pages that show ideas (mockups) #}
+      {# Team demo: nothing is decided yet, so EVERY page is marked as a mockup #}
+      <a href="{% url 'overview' %}" {% if active == 'overview' %}aria-current="page"{% endif %}>Overview<span class="mock-tag">mockup</span></a>
+      <a href="{% url 'map' %}" {% if active == 'map' %}aria-current="page"{% endif %}>Map &amp; ranking<span class="mock-tag">mockup</span></a>
       <a href="{% url 'compare' %}" {% if active == 'compare' %}aria-current="page"{% endif %}>Compare<span class="mock-tag">mockup</span></a>
       <a href="{% url 'admin-mockup' %}" {% if active == 'admin' %}aria-current="page"{% endif %}>Admin<span class="mock-tag">mockup</span></a>
     </nav>
-    <span class="badge-fictional" title="The NbS are invented for learning; the municipality boundaries are real (ISTAT).">
-      Sample data · fictional
+    <span class="badge-fictional" title="Everything here is a proposal for discussion; nothing is final. The NbS are invented; the municipality boundaries are real (ISTAT).">
+      Mockup – sample data
     </span>
   </header>
 

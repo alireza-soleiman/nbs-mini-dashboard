@@ -488,7 +488,6 @@ path.leaflet-interactive:focus { outline: none; }
 .drawer .bar-row { grid-template-columns: minmax(7rem, 56%) 1fr 3rem; }  /* room for long names */
 
 /* Map page: the "More ideas" box, priority cards, heat legend, score bar in the popup */
-#ideas > summary .mock-label { margin-left: auto; }
 .heat-swatch { width: 16px; height: 10px; border-radius: 2px; }
 #idea-heat-legend { gap: 0.25rem; }
 .cards p { margin: 0.5rem 0; font-size: 0.8rem; color: var(--ink-2); }
@@ -691,3 +690,18 @@ path.leaflet-interactive:focus { outline: none; }
 
 /* Four menu items do not fit on one line on a phone: let them wrap */
 .nav { flex-wrap: wrap; }
+
+/* Nothing is decided yet, so EVERY section is a mockup: one rule puts a small "Mockup"
+   tag after each section title (cards on all pages, the panels and the ranking on the
+   map page). A new section gets the tag by itself. */
+.card header h2::after,
+details.panel > summary > span:first-child::after,
+.ranking-head h2::after {
+  content: "Mockup";
+  margin-left: 0.5rem; padding: 0.05rem 0.4rem; border-radius: 6px; border: 1px dashed var(--note-ink);
+  background: var(--note-bg); color: var(--note-ink);
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  white-space: nowrap; vertical-align: 0.2em;
+}
+/* The badge in the top bar: the same look as the other mockup labels */
+.badge-fictional { border-style: dashed; border-color: var(--note-ink); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.7rem; }
