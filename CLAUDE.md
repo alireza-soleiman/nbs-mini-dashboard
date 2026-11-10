@@ -111,11 +111,34 @@ city where Eurac is based as an example in this project.
   of 46.6068), screenshots of MER-07/MAR-02/CER-01/POS-02/LAN-01. New numbers in GUIDE
   §5 and §8.2 (Balanced top MER-05 83, last MER-04 49; Flood POS-01 83; Low budget
   MER-05 85; totals €8.3M, 3.8 ha, 5.1 km). Licence ODbL noted in both READMEs
-- **Next step:** **Phase 3** (Milestone 8, handover quality) — **waiting for my
-  go-ahead**. Ideas in `LEARNING.md`; Playwright end-to-end tests are a good candidate
-- **Open questions / blockers:** the old `data/sample/nbs_sample.csv` is no longer in Git
-  but still on disk, because another program (probably Excel) had it open → delete it
-  after closing that program
+- **Team feedback (2026-11-10):** I showed the dashboard to one person of the team; they
+  liked it. Decisions: the real dashboard will be built later in a **separate project**
+  (this one stays my prototype); final users = **municipalities** (simple, non-technical);
+  **3D is not needed**; they want other chart forms; data should come in through an admin
+  area. Agreed ideas: charts answer questions (not "chart types"); three roles
+  (researchers manage data, municipalities view and weigh, someone sets the layout);
+  chart choice = simple on/off list; a vulnerability layer on the map; sliders and Simos
+  cards. In the meeting with the whole team I only **show**; afterwards I send a
+  Word/Excel file with questions (not written yet)
+- **Team demo (2026-11-10), branch `team-demo` from `main` (not pushed):** the dashboard
+  plus mockups, all labelled "Mockup – sample data". 10 NbS (`nbs_demo.geojson`: MER-01,
+  MER-02, MER-05, MAR-02, LAN-01, LAN-04, LAG-02, NAT-03, SCE-01, POS-01). Overview:
+  "Other options" button per section → side panel (`OPTIONS` in `overview.js`, charts in
+  `mockup-charts.js`: `donut`, `dotTable`, `radar`, `splitBar`, `quadrant`). Map: "More
+  ideas" box (`map-ideas.js`: invented heat zones / municipalities, EOX satellite, cards
+  → weights 10-8-6-4-2, score bar in the popup). New pages `/compare/` (`compare.js`) and
+  `/admin-mockup/` (`admin-mockup.js`; 3 steps Data/Criteria/Display, nothing saved;
+  `/admin/` stays Django's). Checked: every option and screen, light + dark, phone widths,
+  23 tests OK. Numbers: €2.4M, 7 municipalities, Balanced MER-05 82, MER-02 79, NAT-03 76.
+  GUIDE §11 = demo path + how to go back. **The database is shared by all branches:**
+  after the demo `load_sample_nbs --replace` brings the 29 NbS back. The DB also has the
+  3D branch's `height_m` column (migration 0003); harmless on `main`/`team-demo`.
+  Gotchas: Django `{# #}` comments are one line only (use `{% comment %}`); a hidden
+  browser pane freezes CSS animations mid-way (no opacity in animations)
+- **Next step:** the team meeting with `team-demo`; then the question file (Word/Excel)
+  for the team. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
+  paused — **waiting for my go-ahead**
+- **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
 - **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
   handover quality moved to Phase 3
 - **Topics that were hard for me** (explain with code + a small demo when they come

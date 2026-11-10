@@ -469,6 +469,26 @@ _Details: [docs/GUIDE.md](docs/GUIDE.md) §7.2 and `data/sample/README.md`._
 - **Licence:** OSM data is ODbL, so the sample file credits "© OpenStreetMap
   contributors" and stays under the ODbL.
 
+## Team demo — showing ideas as mockups (branch `team-demo`, 2026-11-10)
+
+_Details: [docs/GUIDE.md](docs/GUIDE.md) §11._
+
+- **Why:** before the real dashboard is built (in another project), the team should see
+  what is possible and choose. So this branch adds ideas to the working dashboard, each
+  marked "Mockup – sample data", so nobody takes an idea for a finished feature.
+- **Charts answer questions.** Not "bar or pie?" but "which types do we have?", with
+  two or three ways to draw the answer from the *same* numbers.
+- **A branch protects the working version**, but not the data: the database is shared
+  by all branches. Code comes back with `git switch`, data with a load command.
+- **A mockup can reuse real parts.** The chart ideas read the real API; the cards really
+  re-rank the NbS. Only what would be expensive (saving, uploading, real heat data) is
+  shown as screens.
+- **Small files with one job** (`mockup-charts.js`, `map-ideas.js`) kept the working code
+  almost unchanged: `map.js` got five small hooks.
+- **Lessons:** a shell here-document broke on quotes in a long text → write the text to
+  a file first; Django's `{# … #}` comment is one line only; test in light *and* dark
+  mode and at phone width (the longer menu did not fit on a phone).
+
 ## Phase 3 — Handover quality (Milestone 8)
 
 _Not started yet._ Ideas: production settings (no `runserver`, `DEBUG` off, hashed

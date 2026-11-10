@@ -366,3 +366,67 @@ the admin; and that both pages and their files are delivered.
 | Which real OSM feature each sample NbS uses, unit costs | `scripts/build_sample_shapes.py` |
 | Settings (database, security) | `config/settings.py` + `.env` |
 | The demo video and screenshots (for LinkedIn) | `scripts/record_demo.py` → `linkedin/` (not in Git); the tools it needs are listed at the top of the script |
+
+## 11. The team demo (branch `team-demo`)
+
+This branch is for **showing ideas to a team**. It is the normal dashboard plus
+mockups: things that could be built, shown inside the same pages. Every idea carries the
+label **"Mockup – sample data"** (the Admin page: "Mockup – nothing is saved").
+Sections 1–10 of this guide describe the `main` branch; the numbers in section 8.2 are
+for its 29 NbS and do **not** match this branch, which shows 10.
+
+**What is different here**
+
+| Where | What |
+|---|---|
+| Data | 10 of the 29 NbS (`data/sample/nbs_demo.geojson`): one of each type plus a second "street trees", in 7 municipalities |
+| Overview | Each chart section has an **Other options** button. It opens a side panel with the same numbers in other forms: donut, table with dots, radar charts, "benefit per euro" bars, four fields, score split by criterion |
+| Map & ranking | A **More ideas** box: heat vulnerability (detailed zones or whole municipalities, **invented values**), satellite background, priorities as cards instead of sliders, the score explained with one bar |
+| Compare (new tab) | Two or three NbS side by side, as a table with bars or as a radar chart |
+| Admin (new tab) | An idea for a simple admin area in three steps: Data (table, form, file upload with a check screen), Criteria, Display. The buttons switch screens; **nothing is saved** |
+
+The cards and the satellite background really work; the heat layers and the whole Admin
+page only show how it could look. The real admin is still Django's, at `/admin/`.
+
+**Before a presentation**
+
+```
+git switch team-demo
+docker compose up -d
+docker compose exec web python manage.py load_sample_nbs --replace --file data/sample/nbs_demo.geojson
+```
+
+Then open http://localhost:8000. You need Docker running and internet (map background).
+Expected: **10 NbS · €2.4M · 7 of 116 municipalities**; ranking 1 MER-05 **82**,
+2 MER-02 **79**, 3 NAT-03 **76**.
+
+**A path through the demo**
+- [ ] Overview: the key figures, then **Other options** on "NbS per type" (bars against
+      donut) and on "Benefit profile" (dots, radar). Esc or × closes the panel.
+- [ ] Map & ranking: click an NbS (it flies there, the popup explains the score).
+      In **More ideas**: *Detailed zones*, then *By municipality*; *Satellite*;
+      *Cards* (move "Low cost" to the top: the ranking changes); *Bar*, then open a popup.
+- [ ] Compare: change one of the three NbS; switch to *Radar chart*.
+- [ ] Admin: *Upload a file* → *Use the example file* → the check screen (8 OK, 2 problems);
+      step 2 *Criteria* (switch one on); step 3 *Display* (switch a section on: the preview
+      follows); **View as municipality** goes back to the Overview.
+
+**Going back**
+
+```
+git switch main
+docker compose exec web python manage.py load_sample_nbs --replace
+```
+
+The first command brings back the code of `main`. The second loads the 29 NbS again: the
+database is shared by all branches, so switching the branch does not change the data.
+
+**Where the demo code is**
+
+| What | File |
+|---|---|
+| The chart ideas (donut, dots, radar, split bar, four fields) | `dashboard/static/dashboard/js/mockup-charts.js` |
+| "Other options" panel: which options each section has | `OPTIONS` in `overview.js` |
+| The map ideas (heat, satellite, cards, score bar) | `map-ideas.js` |
+| Compare page · Admin page | `compare.js` · `admin-mockup.js` (+ their templates) |
+| All demo styles | the "TEAM DEMO" part at the end of `dashboard.css` |
