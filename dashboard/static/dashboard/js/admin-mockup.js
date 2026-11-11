@@ -5,6 +5,7 @@
 
 import { getJSON } from './api.js';
 import { escapeHtml, euro } from './format.js';
+import { setupPlaceMap, showPlace } from './place-map.js';
 import { CRITERIA } from './ranking.js';
 
 const API = document.body.dataset;
@@ -58,8 +59,11 @@ async function init() {
   drawCriteria();
   drawDisplay();
   try {
-    const [nbs, types] = await Promise.all([getJSON(API.nbsUrl), getJSON(API.typesUrl)]);
+    const [nbs, types, municipalities] = await Promise.all([
+      getJSON(API.nbsUrl), getJSON(API.typesUrl), getJSON(API.municipalitiesUrl),
+    ]);
     drawTable(nbs.features);
+    setupPlaceMap(municipalities); // the map in the form (place-map.js)
     buildForm(types);
     $('status').hidden = true;
   } catch (error) {
@@ -95,8 +99,9 @@ function setupButtons() {
     const button = event.target.closest('[data-go], [data-toast]');
     if (!button) return;
     if (button.dataset.go) {
-      if (button.dataset.go === 'form') fillForm(button.dataset.id ? nbsById.get(Number(button.dataset.id)) : null);
       showView(button.dataset.go);
+      // After showView: the map in the form needs a visible box
+      if (button.dataset.go === 'form') fillForm(button.dataset.id ? nbsById.get(Number(button.dataset.id)) : null);
       window.scrollTo({ top: 0 });
     }
     if (button.dataset.toast) toast(button.dataset.toast);
@@ -113,7 +118,7 @@ function toast(text) {
 
 // --- Step 1: Data ---------------------------------------------------------------------
 
-const nbsById = new Map();
+const nbsById = new Map(); // NbS id -> GeoJSON feature (for "Edit")
 
 function drawTable(features) {
   const sorted = [...features].sort((a, b) => (a.properties.code ?? '').localeCompare(b.properties.code ?? ''));
@@ -121,7 +126,7 @@ function drawTable(features) {
   const drafts = new Set(sorted.slice(-2).map((f) => f.id));
   $('nbs-rows').innerHTML = sorted.map((f) => {
     const p = f.properties;
-    nbsById.set(f.id, p);
+    nbsById.set(f.id, f);
     const draft = drafts.has(f.id);
     return `<tr><td class="code">${escapeHtml(p.code ?? '')}</td><td>${escapeHtml(p.name)}</td>
       <td>${escapeHtml(p.nbs_type_label)}</td><td>${escapeHtml(p.municipality ?? '–')}</td>
@@ -140,11 +145,13 @@ function buildForm(types) {
     </label>`).join(''));
 }
 
-/** Empty form for "Add", filled form for "Edit". */
-function fillForm(properties) {
+/** Empty form and empty map for "Add"; the values and the shape of the NbS for "Edit". */
+function fillForm(feature) {
   const form = $('nbs-form');
+  const properties = feature?.properties;
   form.reset();
   $('form-title').textContent = properties ? `Edit ${properties.code ?? 'NbS'}` : 'Add an NbS';
+  showPlace(feature);
   if (!properties) return;
   for (const field of form.elements) {
     if (field.name && properties[field.name] !== undefined) field.value = properties[field.name];

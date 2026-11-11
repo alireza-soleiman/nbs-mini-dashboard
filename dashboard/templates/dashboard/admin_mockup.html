@@ -4,6 +4,12 @@
 {% block title %}Admin (mockup) · NbS mini-dashboard{% endblock %}
 {% block body_class %}page-admin-mockup{% endblock %}
 
+{% block head %}
+  <!-- Leaflet 1.9.4 for the map in the "Add an NbS" form (same files as the map page) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
 {% block content %}
 {% comment %}
   Team demo: an IDEA for a simple admin area. The buttons switch screens; nothing is saved.
@@ -68,16 +74,23 @@
           <legend>Benefits, from 0 (none) to 5 (very high)</legend>
         </fieldset>
         <div class="wide">
-          <span class="form-label">Place</span>
-          <div class="map-placeholder">
-            <div class="toolbar">
-              <button type="button" class="demo-button" data-toast="Mockup: you would now click one point on the map.">Point</button>
-              <button type="button" class="demo-button" data-toast="Mockup: you would now click along a street or a river.">Line</button>
-              <button type="button" class="demo-button" data-toast="Mockup: you would now click around an area, e.g. a roof.">Area</button>
+          <span class="form-label" id="place-label">Place: draw it on the map</span>
+          <!-- A real map (admin-mockup.js): click to draw a point, a line or an area.
+               The drawing is only on this page; nothing is saved. -->
+          <div class="place-tools">
+            <div class="presets" id="place-modes" role="group" aria-labelledby="place-label">
+              <button type="button" class="preset" data-mode="point" aria-pressed="true">Point</button>
+              <button type="button" class="preset" data-mode="line" aria-pressed="false">Line</button>
+              <button type="button" class="preset" data-mode="area" aria-pressed="false">Area</button>
             </div>
-            <p>Here is a map. Choose point, line or area and draw the place.<br>
-              The municipality is found from the place.</p>
+            <button type="button" class="demo-button is-small" id="place-clear">Start again</button>
           </div>
+          <div id="place-map" class="place-map" aria-label="Map for drawing the place of the NbS"></div>
+          <p class="place-info" aria-live="polite">
+            <span id="place-hint"></span>
+            <span>Municipality: <strong id="place-municipality">–</strong> <span class="muted">(found from the place)</span></span>
+            <span>Size: <strong id="place-size">–</strong></span>
+          </p>
         </div>
         <div class="wide form-actions">
           <button type="button" class="demo-button is-primary" data-go="table" data-toast="Mockup: the NbS would be published now. Nothing was saved.">Publish</button>
@@ -159,5 +172,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script type="module" src="{% static 'dashboard/js/admin-mockup.js' %}"></script>
 {% endblock %}

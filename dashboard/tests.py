@@ -69,6 +69,14 @@ class DashboardPageTests(TestCase):
                 for attribute in self.API_ATTRIBUTES:
                     self.assertIn(attribute, html)
 
+    def test_admin_mockup_form_has_a_real_map(self):
+        html = self.client.get('/admin-mockup/').content.decode()
+        self.assertIn('id="place-map"', html)
+        for mode in ['point', 'line', 'area']:
+            self.assertIn(f'data-mode="{mode}"', html)
+        # Leaflet from the CDN, protected by its fingerprint (as on the map page)
+        self.assertRegex(html, r'leaflet@1\.9\.4/dist/leaflet\.js"\s+integrity="sha256-')
+
     def test_every_page_is_marked_as_mockup(self):
         # Nothing is decided yet: all four tabs carry the tag, and every page the badge
         for address in ['/', '/map/', '/compare/', '/admin-mockup/']:
@@ -84,7 +92,8 @@ class DashboardPageTests(TestCase):
 
     def test_javascript_and_css_files_exist(self):
         for name in ['api.js', 'ranking.js', 'colors.js', 'format.js', 'map.js', 'overview.js',
-                     'mockup-charts.js', 'map-ideas.js', 'compare.js', 'admin-mockup.js']:
+                     'mockup-charts.js', 'map-ideas.js', 'compare.js', 'admin-mockup.js',
+                     'place-map.js']:
             with self.subTest(file=name):
                 self.assertIsNotNone(finders.find(f'dashboard/js/{name}'))
         self.assertIsNotNone(finders.find('dashboard/css/dashboard.css'))
