@@ -74,18 +74,70 @@
           <legend>Benefits, from 0 (none) to 5 (very high)</legend>
         </fieldset>
         <div class="wide">
-          <span class="form-label" id="place-label">Place: draw it on the map</span>
-          <!-- A real map (admin-mockup.js): click to draw a point, a line or an area.
-               The drawing is only on this page; nothing is saved. -->
-          <div class="place-tools">
-            <div class="presets" id="place-modes" role="group" aria-labelledby="place-label">
+          <span class="form-label" id="place-label">Place: how do you want to give it?</span>
+          <!-- Four ways to give the place (place-sources.js); all of them end on the real
+               map below (place-map.js). Nothing is saved. -->
+          <div class="presets" id="place-methods" role="group" aria-labelledby="place-label">
+            <button type="button" class="preset" data-method="draw" aria-pressed="true">Draw on the map</button>
+            <button type="button" class="preset" data-method="search" aria-pressed="false">Search an address</button>
+            <button type="button" class="preset" data-method="coordinates" aria-pressed="false">Type coordinates</button>
+            <button type="button" class="preset" data-method="file" aria-pressed="false">Upload a file</button>
+          </div>
+
+          <!-- 1. Draw: click a point, a line or an area -->
+          <div class="place-method" data-for="draw">
+            <div class="presets" id="place-modes" role="group" aria-label="What to draw">
               <button type="button" class="preset" data-mode="point" aria-pressed="true">Point</button>
               <button type="button" class="preset" data-mode="line" aria-pressed="false">Line</button>
               <button type="button" class="preset" data-mode="area" aria-pressed="false">Area</button>
             </div>
             <button type="button" class="demo-button is-small" id="place-clear">Start again</button>
           </div>
-          <div id="place-map" class="place-map" aria-label="Map for drawing the place of the NbS"></div>
+
+          <!-- 2. Search: an address or a name; the outline comes from OpenStreetMap -->
+          <div class="place-method" data-for="search" hidden>
+            <div class="place-row">
+              <input class="demo-input" id="place-search-input" type="search" autocomplete="off"
+                     placeholder="e.g. Piazza della Rena, Merano – or the name of a school"
+                     aria-label="Address or name of the place">
+              <button type="button" class="demo-button is-primary" id="place-search-button">Search</button>
+            </div>
+            <ul class="place-results" id="place-search-results" aria-live="polite"></ul>
+            <p class="place-note">The search text is sent to OpenStreetMap's search service (Nominatim).
+              If it knows the object, for example a building, its real outline becomes the place.</p>
+          </div>
+
+          <!-- 3. Coordinates: degrees or metres -->
+          <div class="place-method" data-for="coordinates" hidden>
+            <div class="place-row">
+              <label>Coordinate system
+                <select class="demo-input" id="place-crs">
+                  <option value="4326">Longitude / latitude in degrees (WGS84, EPSG:4326)</option>
+                  <option value="25832">UTM 32N in metres (ETRS89, EPSG:25832)</option>
+                </select></label>
+              <label><span id="place-x-label">Longitude</span>
+                <input class="demo-input" id="place-x" inputmode="decimal" autocomplete="off"></label>
+              <label><span id="place-y-label">Latitude</span>
+                <input class="demo-input" id="place-y" inputmode="decimal" autocomplete="off"></label>
+              <button type="button" class="demo-button is-primary" id="place-coordinates-button">Show on the map</button>
+            </div>
+            <p class="place-note">Local GIS data is usually in metres (EPSG:25832); GPS and web maps use degrees.</p>
+          </div>
+
+          <!-- 4. File: the exact shape from a GIS program -->
+          <div class="place-method" data-for="file" hidden>
+            <div class="place-row">
+              <label class="demo-button is-primary place-file-button">Choose a GeoJSON file
+                <input type="file" id="place-file" accept=".geojson,.json,application/geo+json" class="visually-hidden"></label>
+              <button type="button" class="demo-button" id="place-file-example">Use the example file</button>
+              <span class="place-file-name" id="place-file-name"></span>
+            </div>
+            <p class="place-note">The first shape of the file becomes the place, in degrees or in metres
+              (EPSG:25832). The real version could also read Shapefile, GeoPackage, KML and GPX.</p>
+          </div>
+
+          <p class="place-error" id="place-error" role="alert" hidden></p>
+          <div id="place-map" class="place-map is-drawing" aria-label="Map that shows the place of the NbS"></div>
           <p class="place-info" aria-live="polite">
             <span id="place-hint"></span>
             <span>Municipality: <strong id="place-municipality">–</strong> <span class="muted">(found from the place)</span></span>

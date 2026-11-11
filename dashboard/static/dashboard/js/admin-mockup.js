@@ -6,6 +6,7 @@
 import { getJSON } from './api.js';
 import { escapeHtml, euro } from './format.js';
 import { setupPlaceMap, showPlace } from './place-map.js';
+import { resetPlaceSources, setupPlaceSources } from './place-sources.js';
 import { CRITERIA } from './ranking.js';
 
 const API = document.body.dataset;
@@ -64,6 +65,7 @@ async function init() {
     ]);
     drawTable(nbs.features);
     setupPlaceMap(municipalities); // the map in the form (place-map.js)
+    setupPlaceSources();           // search, coordinates, file (place-sources.js)
     buildForm(types);
     $('status').hidden = true;
   } catch (error) {
@@ -94,6 +96,8 @@ function showView(name) {
 }
 
 function setupButtons() {
+  // A mockup form is never sent (Enter in a text field would reload the page)
+  $('nbs-form').addEventListener('submit', (event) => event.preventDefault());
   // data-go="screen" switches the screen; data-toast="text" says what WOULD happen
   document.addEventListener('click', (event) => {
     const button = event.target.closest('[data-go], [data-toast]');
@@ -151,6 +155,7 @@ function fillForm(feature) {
   const properties = feature?.properties;
   form.reset();
   $('form-title').textContent = properties ? `Edit ${properties.code ?? 'NbS'}` : 'Add an NbS';
+  resetPlaceSources();
   showPlace(feature);
   if (!properties) return;
   for (const field of form.elements) {

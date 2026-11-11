@@ -74,6 +74,10 @@ class DashboardPageTests(TestCase):
         self.assertIn('id="place-map"', html)
         for mode in ['point', 'line', 'area']:
             self.assertIn(f'data-mode="{mode}"', html)
+        # Four ways to give the place: by hand, or exactly (address, coordinates, file)
+        for method in ['draw', 'search', 'coordinates', 'file']:
+            self.assertIn(f'data-method="{method}"', html)
+        self.assertIn('EPSG:25832', html)  # coordinates in metres are accepted too
         # Leaflet from the CDN, protected by its fingerprint (as on the map page)
         self.assertRegex(html, r'leaflet@1\.9\.4/dist/leaflet\.js"\s+integrity="sha256-')
 
@@ -93,7 +97,7 @@ class DashboardPageTests(TestCase):
     def test_javascript_and_css_files_exist(self):
         for name in ['api.js', 'ranking.js', 'colors.js', 'format.js', 'map.js', 'overview.js',
                      'mockup-charts.js', 'map-ideas.js', 'compare.js', 'admin-mockup.js',
-                     'place-map.js']:
+                     'place-map.js', 'place-sources.js']:
             with self.subTest(file=name):
                 self.assertIsNotNone(finders.find(f'dashboard/js/{name}'))
         self.assertIsNotNone(finders.find('dashboard/css/dashboard.css'))
