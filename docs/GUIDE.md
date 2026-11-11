@@ -385,7 +385,7 @@ for its 29 NbS and do **not** match this branch, which shows 10.
 | Overview | Each chart section has an **Other options** button. It opens a side panel with the same numbers in other forms: donut, table with dots, radar charts, "benefit per euro" bars, four fields, score split by criterion |
 | Map & ranking | A **More ideas** box: heat vulnerability (detailed zones or whole municipalities, **invented values**), satellite background, priorities as cards instead of sliders, the score explained with one bar |
 | Compare (new tab) | Two or three NbS side by side, as a table with bars or as a radar chart |
-| Admin (new tab) | An idea for a simple admin area in three steps: Data (table, a form with a **real map to draw the place on**, file upload with a check screen), Criteria, Display. The buttons switch screens; **nothing is saved** |
+| Admin (new tab) | An idea for a simple admin area in three steps: Data (table, a form with a **real map** and four ways to give the place: draw it, search an address, type coordinates (degrees or EPSG:25832 metres) or upload a GeoJSON file, file upload with a check screen), Criteria, Display. The buttons switch screens; **nothing is saved** |
 
 The cards and the satellite background really work; the heat layers and the whole Admin
 page only show how it could look. The real admin is still Django's, at `/admin/`.
@@ -409,9 +409,12 @@ Expected: **10 NbS · €2.4M · 7 of 116 municipalities**; ranking 1 MER-05 **8
       In **More ideas**: *Detailed zones*, then *By municipality*; *Satellite*;
       *Cards* (move "Low cost" to the top: the ranking changes); *Bar*, then open a popup.
 - [ ] Compare: change one of the three NbS; switch to *Radar chart*.
-- [ ] Admin: *+ Add an NbS* → choose *Line* or *Area* and click on the map: the shape
-      appears, with its municipality and size underneath. *Edit* on a row shows the saved
-      shape. Then *Upload a file* → *Use the example file* → the check screen (8 OK, 2 problems);
+- [ ] Admin: *+ Add an NbS* → *Search an address*: type "Grundschule Pascoli Merano" →
+      the school's outline appears (**Merano/Meran · 2,487 m²**). *Type coordinates*:
+      UTM 32N, 665194 and 5170903 → a point in Merano's centre. *Upload a file* (in the
+      form) → *Use the example file* → a sports hall. *Draw on the map* → *Line* or
+      *Area* and click. *Edit* on a row shows the saved shape. Then, in the toolbar
+      above the table, *Upload a file* → *Use the example file* → the check screen (8 OK, 2 problems);
       step 2 *Criteria* (switch one on); step 3 *Display* (switch a section on: the preview
       follows); **View as municipality** goes back to the Overview.
 
@@ -433,4 +436,5 @@ database is shared by all branches, so switching the branch does not change the 
 | "Other options" panel: which options each section has | `OPTIONS` in `overview.js` |
 | The map ideas (heat, satellite, cards, score bar) | `map-ideas.js` |
 | Compare page · Admin page · the map in the Admin form | `compare.js` · `admin-mockup.js` · `place-map.js` (+ the templates) |
+| Ways to give a place exactly: address search, coordinates (with the UTM conversion), file | `place-sources.js` |
 | All demo styles | the "TEAM DEMO" part at the end of `dashboard.css` |

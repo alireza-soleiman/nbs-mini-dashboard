@@ -153,6 +153,15 @@ city where Eurac is based as an example in this project.
   Chrome (I offered it): options panel animation, map flight + popup, drawing with real
   clicks all work. The demo click path is in `docs/GUIDE.md` §11 (I could not find it:
   give the file link, or paste the steps in chat). 25 tests OK
+- **Exact places in the Admin form (2026-11-11):** my wish: "add real geo data to find
+  the exact place instead of putting it manually". `place-sources.js` adds three ways
+  next to drawing; each ends in `setShape(geometry, note)` of `place-map.js`:
+  **search** (Nominatim, `polygon_geojson=1`, bounded to South Tyrol; the OSM outline
+  becomes the place; names set with `textContent`), **coordinates** (EPSG:4326 or
+  EPSG:25832 via `utm32ToLonLat`, Krüger series; equal to GEOS to 7 decimals for 3
+  points), **file** (GeoJSON, first shape, metres converted; example file = the MER-07
+  sports hall). Friendly errors (swapped numbers, broken or far-away file). Nothing
+  is saved. The search needs internet and sends the typed text to Nominatim
 - **Next step:** the team meeting with `team-demo`; then the question file (Word/Excel)
   for the team. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**
