@@ -145,6 +145,14 @@ city where Eurac is based as an example in this project.
   refresh; the user's browser has the same problem.** (2) My wish: **everything** is
   marked mockup: all 4 nav tabs, the top badge ("Mockup – sample data"), a banner on the
   Overview, and a CSS `::after` "Mockup" tag on every section title. 24 tests OK
+- **Admin form map (2026-11-11):** I missed a map in "Add an NbS" (it was a grey
+  placeholder). Now a real Leaflet map (`place-map.js`): Point / Line / Area by
+  clicking, "Start again", municipality found in the browser by ray casting on the
+  API outlines (the real project: PostGIS in `NbS.save()`), size in m/km/m²/ha; *Edit*
+  shows the saved shape. Nothing is saved. Checked in my real Chrome with Claude in
+  Chrome (I offered it): options panel animation, map flight + popup, drawing with real
+  clicks all work. The demo click path is in `docs/GUIDE.md` §11 (I could not find it:
+  give the file link, or paste the steps in chat). 25 tests OK
 - **Next step:** the team meeting with `team-demo`; then the question file (Word/Excel)
   for the team. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**
