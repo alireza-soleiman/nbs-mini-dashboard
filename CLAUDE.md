@@ -162,6 +162,24 @@ city where Eurac is based as an example in this project.
   points), **file** (GeoJSON, first shape, metres converted; example file = the MER-07
   sports hall). Friendly errors (swapped numbers, broken or far-away file). Nothing
   is saved. The search needs internet and sends the typed text to Nominatim
+- **Standalone HTML files for the team (2026-11-12, local only):** my wish: 4 HTML files
+  (one per tab) the team can open themselves, no Docker. In `meeting-mockup/` (ignored
+  via `.git/info/exclude`, never committed): `overview.html`, `map-and-ranking.html`,
+  `compare.html`, `admin.html`, `README.txt`, `NbS-dashboard-mockup.zip` (347 KB).
+  Made by `meeting-mockup/build/build.py` (Windows Python, needs the dashboard running
+  with the 10 demo NbS): takes the rendered pages, inlines `dashboard.css`, Leaflet 1.9.4
+  (`build/leaflet.*`, SHA-256 checked against the templates) and a **mini bundler**
+  (each ES module in its own IIFE; Chrome blocks module files on `file://`); `api.js` →
+  a stand-in answering from saved API data with the type/municipality filters;
+  municipality outlines rounded to 4 decimals. **Found:** `tile.openstreetmap.org` sends
+  "403 Access blocked" tiles to pages without a Referer (double-clicked files); CARTO now
+  needs an API key → the files use `tile.openstreetmap.de` (same with/without Referer).
+  Nominatim works from `file://` (`Access-Control-Allow-Origin: *`). Tested with the
+  Django server **stopped** (all 4 pages, filters, ideas, compare, admin incl. search /
+  coordinates / file / drawing; no console errors). The browser pane can't open big
+  local files (`data:` snapshot) → tested over a temporary `http.server` entry in
+  `.claude/launch.json`, then `git restore`. Rebuild after dashboard changes:
+  `python meeting-mockup/build/build.py`
 - **Next step:** the team meeting with `team-demo`; then the question file (Word/Excel)
   for the team. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**
