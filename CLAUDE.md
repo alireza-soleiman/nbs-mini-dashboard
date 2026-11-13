@@ -196,8 +196,27 @@ city where Eurac is based as an example in this project.
   off the one "inconsistent formula" mark on the Total progress cell; PDFs; test: one
   item done → Summary counts it). E/D prefixes because `1.01` gave "number stored as
   text" marks
+- **Easier Eurac forms (2026-11-13, local only):** my wish: the long Excel is hard to
+  navigate → both an HTML page and an easier Excel, built by two parallel sessions
+  (Opus: HTML, Sonnet: Excel) with this session coordinating. Contract first:
+  `eurac_shared.py` (IDs, option letters = the master's A) B)…, roles project 49 + 22
+  shared / it 44 / data 20 / legal 12 / all 125, answer JSON format, `EASY_HEADERS`,
+  defined name `respondent_name`). `EURAC_Research_Questionnaire.html` (`build_html.py`;
+  offline, no network, role filter, one question per screen, localStorage autosave,
+  "Save answers as file" → JSON) and `EURAC_Research_Questionnaire_by_area.xlsx`
+  (`build_easy_excel.py`, `check_easy_excel.ps1`; Start sheet with links + progress,
+  12 area sheets, 1 row per question, 68 drop-downs from a hidden "Lists" sheet).
+  `import_answers.py` merges .json/.xlsx answers into the master (ticks add up, texts
+  with names, different statuses or one-answer choices → "Needs discussion", sheet
+  "Imported answers", SHA-256 against double imports, backup, then the Excel check,
+  which also sets the H17 "ignore" again: openpyxl drops it). `build_questionnaires.py`
+  now refuses to overwrite a filled-in file (`--force`). Six questions say "answer
+  column"/"Contacts sheet": both forms show a note → comment. Round trip checked:
+  real clicks in the page → JSON → import (+ both samples) → Summary 7 / 5 / 3 / 110,
+  8 %. How-to: `questionnaires/README.txt`. Gotcha: PowerShell `$r = if (…) {$range}`
+  unrolls a COM range into cells (assign inside the branches)
 - **Next step:** the team meeting with `team-demo`; afterwards send the Eurac
-  questionnaire. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
+  questionnaire (HTML page or by-area Excel). **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**
 - **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
 - **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
