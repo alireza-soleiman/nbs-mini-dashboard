@@ -180,8 +180,24 @@ city where Eurac is based as an example in this project.
   local files (`data:` snapshot) → tested over a temporary `http.server` entry in
   `.claude/launch.json`, then `git restore`. Rebuild after dashboard changes:
   `python meeting-mockup/build/build.py`
-- **Next step:** the team meeting with `team-demo`; then the question file (Word/Excel)
-  for the team. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
+- **Questionnaires (2026-11-12 → 11-13, local only):** my wish: questions Eurac must
+  answer (development and going online) + questions for me as the full-stack developer,
+  in Excel. In `questionnaires/` (ignored via `.git/info/exclude`):
+  `EURAC_Research_Project_Requirements_and_Technical_Questions.xlsx` (12 areas, 125
+  questions, 80 Mandatory, IDs `E1.01`…, Contacts sheet with 15 roles) and
+  `Full-Stack_Developer_Technical_Preparation_and_Self-Assessment.xlsx` (11 areas, 94
+  items, 13 Critical, IDs `D1.01`…, self-assessment, priority, status, required action,
+  resources). Sheets: How to use, Questions (question row + grouped option rows A) B)…
+  Other / Not sure, tick with `x`), Summary (`COUNTIFS` on Status, progress bar). Made by
+  `questionnaires/build/build_questionnaires.py` (texts in `content_eurac.py`,
+  `content_developer.py`; openpyxl in `%LOCALAPPDATA%\Temp\nbsxl`, installed with
+  `PIP_USER=0` because the Store Python forces `--user`), then `check_with_excel.ps1`
+  **once per file** (Excel COM: recalculate, fit rows, save; 0 formula errors; switches
+  off the one "inconsistent formula" mark on the Total progress cell; PDFs; test: one
+  item done → Summary counts it). E/D prefixes because `1.01` gave "number stored as
+  text" marks
+- **Next step:** the team meeting with `team-demo`; afterwards send the Eurac
+  questionnaire. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**
 - **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
 - **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
