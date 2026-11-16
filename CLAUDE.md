@@ -228,8 +228,26 @@ city where Eurac is based as an example in this project.
   an option jumps to the next one (a new one at the end; focus moves ~1 s later);
   "Add option" text is real text → Ctrl+A before typing; with a subtitle field Tab order
   breaks → click option 1 directly; confirm the add menu is open before clicking a type
-- **Next step:** the team meeting with `team-demo`; I choose the first-round questions,
-  then we decide the format (Forms draft exists). Full questionnaire = round 2. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
+- **New approach (2026-11-16, my strategy):** first meeting = present the mockup and ask
+  vision questions live; then **two separate documents**: (1) **mockup feedback**
+  (opinions, each person, Microsoft Forms) and (2) **requirements & technical info**
+  (facts, one combined Eurac answer, shared Word). Then consolidation workshop
+  (Must/Should/Could/Won't) → mockup v2 + scope summary confirmed by Eurac (test with a
+  pilot municipality) → technical planning with IT → development. Don't lead with the
+  Django prototype; the full 125 questions stay my master checklist (round 2).
+  Built in `questionnaires/first_round/`: `doc1_mockup_feedback.md` (22 questions, 6
+  sections, 4 Likert grids with the element codes, **waiting for my review before the
+  Forms build**) and `EURAC_Project_Requirements_and_Technical_Information.docx`
+  (`build_doc2.js`, npm `docx` 9.15 in `%LOCALAPPDATA%\Temp\nbsdocx`; 7 pages, sections
+  A understood-in-meeting / B contacts / C data / D technical / E later topics; 112 real
+  checkbox content controls, checked in Word 16; pages as PNG via Word
+  `Pages(i).EnhMetaFileBits` – no pdftoppm/LibreOffice here). **Element codes** on the 4
+  mockup files (O1–O7, M1–M6, C1–C2, A1–A7): `meeting-mockup/build/codes.py` (injected
+  block, idempotent, MutationObserver + `setTimeout` – rAF is paused in hidden tabs);
+  `build.py` adds them on every build; README explains them. Pictures redone
+  (`first_round/images/`). The old Forms draft can become Document 1 or be deleted
+- **Next step:** I review Document 1 → build it in Microsoft Forms; after the meeting
+  pre-fill section A of Document 2. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**
 - **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
 - **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
