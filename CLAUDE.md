@@ -215,8 +215,21 @@ city where Eurac is based as an example in this project.
   real clicks in the page → JSON → import (+ both samples) → Summary 7 / 5 / 3 / 110,
   8 %. How-to: `questionnaires/README.txt`. Gotcha: PowerShell `$r = if (…) {$range}`
   unrolls a COM range into cells (assign inside the branches)
-- **Next step:** the team meeting with `team-demo`; afterwards send the Eurac
-  questionnaire (HTML page or by-area Excel). **Phase 3** (Milestone 8, handover quality) and the 3D branch are
+- **First round for Eurac (2026-11-16, paused by me):** wish: a short version for the
+  first meeting (only what is needed to start + the 4 mockups), as a Microsoft Form in my
+  Eurac account (org-only: answers stay in Eurac's Microsoft 365). Draft
+  `questionnaires/first_round/first_round_questions.md` (21 questions, 4 sections, E-IDs)
+  + pictures `first_round/images/` (`make_pictures.ps1`: headless Edge, light mode;
+  `map.jpg` from the browser pane, because headless Edge catches Leaflet tiles mid-fade).
+  Form "NbS dashboard – first questions" = **unshared draft** in my Forms: section 1
+  (6 questions) + section 2 started (questions 6–8 done, 9 has only its title).
+  **Stopped: I first pick the questions myself from the 125, then we decide.** Forms
+  gotchas: new questions inherit Required / Multiple answers / subtitle field; Enter in
+  an option jumps to the next one (a new one at the end; focus moves ~1 s later);
+  "Add option" text is real text → Ctrl+A before typing; with a subtitle field Tab order
+  breaks → click option 1 directly; confirm the add menu is open before clicking a type
+- **Next step:** the team meeting with `team-demo`; I choose the first-round questions,
+  then we decide the format (Forms draft exists). Full questionnaire = round 2. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**
 - **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
 - **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
