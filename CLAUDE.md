@@ -120,6 +120,11 @@ below are the same in both. Each chat keeps its own detailed notes.
    `docs/` are public.
 6. **End of each task:** update the own notes file; if something changed for both, also
    **Shared decisions** or **Current status** here.
+7. **The same notes on every branch.** `CLAUDE.md` and `docs/DEVELOPMENT_NOTES.md` are
+   project notes, not branch code, so they must be identical on `main`, `team-demo` and
+   `maplibre-prototype` (otherwise a branch switch loads old rules). After changing them
+   on one branch, copy them to the other branches through a temporary `git worktree`
+   (no branch switch in the shared checkout) and commit there too.
 
 
 ## Shared decisions (both chats)
