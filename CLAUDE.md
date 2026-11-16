@@ -246,8 +246,18 @@ city where Eurac is based as an example in this project.
   block, idempotent, MutationObserver + `setTimeout` – rAF is paused in hidden tabs);
   `build.py` adds them on every build; README explains them. Pictures redone
   (`first_round/images/`). The old Forms draft can become Document 1 or be deleted
-- **Next step:** I review Document 1 → build it in Microsoft Forms; after the meeting
-  pre-fill section A of Document 2. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
+- **Document 1 built in Microsoft Forms (2026-11-16):** "NbS dashboard mockup – your
+  feedback" in my Eurac Forms, **unshared**; 22 questions / 6 sections / 4 pictures,
+  read back as text = the spec. Old draft in Forms' recycle bin. Forms automation notes:
+  type checks via `document.activeElement` before typing (stop on mismatch); choice
+  options: Tab Tab from the title, Enter = next option; Likert: columns Tab Tab,
+  delete column 5 via its button, add rows with "Add statement" then fill **bottom-up
+  with one Shift+Tab per row**; Ranking: rows keep their buttons (click rows via ref);
+  pictures: **never click the upload button** (native dialog freezes the tab) → "Insert
+  Image" panel creates a hidden `input[type=file]` → `file_upload` on it; question
+  subtitles are inherited and break Tab order → hints go in titles
+- **Next step:** the meeting; then share the form link + the 4 HTML files (zip), and
+  send Document 2 with section A pre-filled. **Phase 3** (Milestone 8, handover quality) and the 3D branch are
   paused — **waiting for my go-ahead**
 - **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
 - **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
