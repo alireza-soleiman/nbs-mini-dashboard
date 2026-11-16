@@ -85,138 +85,103 @@ city where Eurac is based as an example in this project.
   so I learn Git too.
 - **Ask before every push.** Never push without my explicit OK.
 
-## Current status
+## Work areas: two chats, one project
 
-- **Phase 1 (Milestones 1–7): done and pushed** (2026-10-26 → 2026-10-27)
-- **Phase 2 (richer dashboard, my 5 requests): done and pushed** (2026-10-27):
-  polygons/lines as NbS, click-to-zoom, realistic sample data, overview page, modern
-  sidebar. Guide, README and `LEARNING.md` updated
-- **LinkedIn (2026-10-27):** post text and presentation talk drafted in chat (not in the
-  repo; don't name Eurac/CRESCITA without their OK). Demo video + 4 screenshots made by
-  `scripts/record_demo.py` (Playwright + headless Chromium + ffmpeg; 45 s, 1920×1080
-  MP4, captions and pointer injected) → `linkedin/` (ignored by Git). The tools were
-  installed in `%TEMP%\nbsvid` (short path: the scratchpad path broke Windows' 260-char
-  limit) and **deleted after my OK**; to re-record, install them again (script header).
-  The recording found a phone bug (results hidden behind the bottom sheet) → fixed.
-  Keep the excluded city out of the pictures: the phone screenshot zooms to Merano (z 12)
-- **MapLibre prototype (2026-11-02), branch `maplibre-prototype` (not pushed, not
-  merged):** after Mapbox research (Mapbox GL JS = proprietary + token since v2;
-  MapLibre = BSD fork) I chose a prototype. `/map-3d/` (name `map3d`, nav "3D map
-  beta"): MapLibre **5.24.0** from cdnjs with SRI; backgrounds OpenFreeMap
-  `liberty`/`positron` + own style with EOX Sentinel-2 2023 (WMTS `{z}/{y}/{x}`,
-  maxzoom 14, CC BY-NC-SA); Terrarium terrain (maxzoom 15, exaggeration 1) + hillshade;
-  sky. `map3d.js`: layers re-added on every `style.load` (`setStyle(…, {diff: false})`,
-  `structuredClone` of the style object); `step` colour expressions built from
-  `SCORE_CLASSES`; feature state `selected`/`hover`; shapes under the basemap labels;
-  presets only. Shared modules: `popup.js` (`popupHtml(row, total)`), `panel.js`
-  (`summaryHtml`, `legendHtml`, `renderRanking`, `markSelectedCard`). 20 tests OK.
-  Verified with JS in the hidden pane (rAF replaced by a timer for tests; canvas copied
-  into an `<img>` for screenshots): same ranking numbers as GUIDE §8.2, background
-  switches keep popup + selection, deep link. Basemap warning "Expected value to be of
-  type number, but found null" = OpenFreeMap `building-3d` (harmless).
-  South Tyrol WMS orthophotos tested and rejected (patchy coverage per year)
-- **3D improvement 1 (2026-11-02, branch only): roofs and facades up high.** New field
-  `NbS.height_m` (PositiveSmallIntegerField, null; migration `0003_nbs_height_m`; in the
-  API; loader reads it if present). Build script: OpenMapTiles rule `max(5, round(height
-  or levels × 3.66 or 5))` — checked against the basemap's `render_height` for all 7
-  roof/facade buildings (MER-01/MER-04 11 m, LAN-02 15 m, others 5 m). `map3d.js`:
-  ground fill/outline only for NbS without height; `nbs-roof` fill-extrusion slab
-  (base = height, +1.2 m, selected +2.5 m); `nbs-wall` from source `nbs-walls` (facade
-  line → 1 m strips in the browser); `nbs-building` grey block only on backgrounds
-  without 3D buildings (satellite, light); click/hover work on all. 21 tests OK
-- **Real NbS shapes (2026-11-02, on `main`, merged into `maplibre-prototype`):** my request: "if this NbS is a green roof
-  of a sports hall it should be exactly on the sports hall". All 29 sample shapes are now
-  real OSM features, made by `scripts/build_sample_shapes.py` (recipes `area`, `wall`,
-  `stretch`, `middle`, `spot` + OSM way ids; costs = unit cost × real size, rounded to
-  €5K; `osm` property in the GeoJSON; texts adjusted where the real place differs, e.g.
-  NAT-02 town hall, TIR-02 park on a meadow). Downloads cached in
-  `data/raw/osm/nbs_sources.json` via the OSM API (Overpass was 502/504 most of the
-  day; Overpass needs a User-Agent, else HTTP 406). Checked: municipality of every NbS
-  (LAG-03 and POS-02 fixed with PostGIS checks; the Adige is the Postal–Lana border north
-  of 46.6068), screenshots of MER-07/MAR-02/CER-01/POS-02/LAN-01. New numbers in GUIDE
-  §5 and §8.2 (Balanced top MER-05 83, last MER-04 49; Flood POS-01 83; Low budget
-  MER-05 85; totals €8.3M, 3.8 ha, 5.1 km). Licence ODbL noted in both READMEs
-- **Next step:** improve the 3D map (my wish after the real shapes), then decide: merge
-  it into `main` (and push), keep improving it, or drop it. After that, **Phase 3**
-  (Milestone 8, handover quality) — **waiting for my go-ahead**. Ideas in
-  `LEARNING.md`; Playwright end-to-end tests are a good candidate
-- **Open questions / blockers:** the old `data/sample/nbs_sample.csv` is no longer in Git
-  but still on disk, because another program (probably Excel) had it open → delete it
-  after closing that program
-- **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
-  handover quality moved to Phase 3
+Since 2026-11-16 this project is worked on in **two Claude Code chats** in this same
+folder. Both load this file automatically, so the rules, goals and **Shared decisions**
+below are the same in both. Each chat keeps its own detailed notes.
+
+| Chat | Covers | Notes (read at the start) |
+|---|---|---|
+| **1 – Dashboard Development** | the codebase: architecture, front end, back end, database, data processing, GIS, tests, deployment; branches `main`, `maplibre-prototype`, Phase 3; later the real dashboard | `docs/DEVELOPMENT_NOTES.md` (in Git) |
+| **2 – HTML Mockups & Questionnaires** | the 4 HTML mockups (`meeting-mockup/`, built from branch `team-demo`), UI/UX and design discussions, the Eurac meeting, feedback form, requirements documents, questionnaires (`questionnaires/`) | `questionnaires/NOTES.md` (local only) |
+
+**Keeping the two chats consistent:**
+
+1. **One place for shared decisions.** A decision that matters to both areas goes into
+   **Shared decisions** below (dated, with "affects: …"), in the chat where it is made.
+   Details stay in that chat's notes; the other chat's notes are not copied.
+2. **Telling the other chat.** This file is loaded when a chat starts. If the other chat
+   is already open, I tell it: "re-read CLAUDE.md – new shared decision" (or the chat that
+   made the decision suggests this to me).
+3. **Typical cross-effects:** Eurac feedback and requirements (Chat 2) → scope and
+   priorities for development (Chat 1). A technical constraint found in Chat 1 (hosting,
+   data format, coordinate system, performance) → a question for Eurac or a mockup change
+   (Chat 2). A change of the dashboard UI that the mockup shows → rebuild the HTML files
+   (Chat 2).
+4. **One checkout, one database.** Both chats use this folder: only one chat changes the
+   Git branch or runs Docker/database commands at a time. Each chat checks
+   `git branch --show-current` and `git status` before working and asks me before
+   switching branches. Chat 1 works on `main` with the 29 sample NbS; Chat 2 needs
+   `team-demo` with the 10 demo NbS only to rebuild the mockups, then
+   `load_sample_nbs --replace` brings the 29 NbS back.
+5. **Partner material stays local.** `meeting-mockup/` and `questionnaires/` are in
+   `.git/info/exclude`; Eurac's answers and feedback are never committed. This file and
+   `docs/` are public.
+6. **End of each task:** update the own notes file; if something changed for both, also
+   **Shared decisions** or **Current status** here.
+7. **The same notes on every branch.** `CLAUDE.md` and `docs/DEVELOPMENT_NOTES.md` are
+   project notes, not branch code, so they must be identical on `main`, `team-demo` and
+   `maplibre-prototype` (otherwise a branch switch loads old rules). After changing them
+   on one branch, copy them to the other branches through a temporary `git worktree`
+   (no branch switch in the shared checkout) and commit there too.
+
+
+## Shared decisions (both chats)
+
+Dated decisions that affect both work areas. Add new ones here (with "affects: …").
+
+- **Team feedback (2026-11-10):** I showed the dashboard to one person of the team; they
+  liked it. Decisions: the real dashboard will be built later in a **separate project**
+  (this one stays my prototype); final users = **municipalities** (simple, non-technical);
+  **3D is not needed**; they want other chart forms; data should come in through an admin
+  area. Agreed ideas: charts answer questions (not "chart types"); three roles
+  (researchers manage data, municipalities view and weigh, someone sets the layout);
+  chart choice = simple on/off list; a vulnerability layer on the map; sliders and Simos
+  cards. In the meeting with the whole team I only **show**; afterwards I send a
+  Word/Excel file with questions (not written yet)
+- **New approach (2026-11-16, my strategy):** first meeting = present the mockup and ask
+  vision questions live; then **two separate documents**: (1) **mockup feedback**
+  (opinions, each person, Microsoft Forms) and (2) **requirements & technical info**
+  (facts, one combined Eurac answer, shared Word). Then consolidation workshop
+  (Must/Should/Could/Won't) → mockup v2 + scope summary confirmed by Eurac (test with a
+  pilot municipality) → technical planning with IT → development. Don't lead with the
+  Django prototype; the full 125 questions stay my master checklist (round 2).
+  Built in `questionnaires/first_round/`: `doc1_mockup_feedback.md` (22 questions, 6
+  sections, 4 Likert grids with the element codes, **waiting for my review before the
+  Forms build**) and `EURAC_Project_Requirements_and_Technical_Information.docx`
+  (`build_doc2.js`, npm `docx` 9.15 in `%LOCALAPPDATA%\Temp\nbsdocx`; 7 pages, sections
+  A understood-in-meeting / B contacts / C data / D technical / E later topics; 112 real
+  checkbox content controls, checked in Word 16; pages as PNG via Word
+  `Pages(i).EnhMetaFileBits` – no pdftoppm/LibreOffice here). **Element codes** on the 4
+  mockup files (O1–O7, M1–M6, C1–C2, A1–A7): `meeting-mockup/build/codes.py` (injected
+  block, idempotent, MutationObserver + `setTimeout` – rAF is paused in hidden tabs);
+  `build.py` adds them on every build; README explains them. Pictures redone
+  (`first_round/images/`). The old Forms draft can become Document 1 or be deleted
+- **Two chats (2026-11-16):** the work is split into Chat 1 Dashboard Development and
+  Chat 2 HTML Mockups & Questionnaires (see "Work areas" above). Affects: both
+
+## Current status (short – details in the area notes)
+
+- **Chat 1 – Dashboard Development:** Phase 1 and Phase 2 done and pushed; real NbS
+  shapes on `main`; 3D prototype on `maplibre-prototype` (local). **Phase 3** (Milestone
+  8, handover quality) and the 3D branch decision are paused — **waiting for my
+  go-ahead**. Requirements first: no development for the real dashboard before the
+  Eurac scope is agreed (see Shared decisions)
+- **Chat 2 – Mockups & Questionnaires:** the 4 HTML mockups with code labels are ready;
+  the feedback form is built in Microsoft Forms (unshared); Document 2 (Word) is ready.
+  Next: the team meeting, then share the form + the mockup zip and send Document 2
+- **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
+
+## Learning notes
+
 - **Topics that were hard for me** (explain with code + a small demo when they come
   up): Docker networking (`localhost` inside a container); EPSG code = coordinate
   system, not an area; same SRID before comparing; who transforms (PostGIS via
   `ST_Transform` that Django writes); logic in `save()`; validation layers (`save()` vs.
   `full_clean()`/forms). Explaining with **exact code lines + a live demo** worked well
 
-### Phase 2 log (done 2026-10-27)
-
-- **Model:** `NbS.location` (Point) → `NbS.geom` (GeometryField, any type) + `NbS.code`
-  (unique, nullable). Hand-written migration `0002_nbs_any_geometry_and_code`
-  (RenameField + AlterField + AddField). `save()`: municipality from
-  `geom.point_on_surface`; `code '' → None`
-- **Data:** `data/sample/nbs_sample.geojson`: 29 fictional NbS, 11 municipalities,
-  14 polygons / 12 lines / 3 points, codes `MER-01` …, costs = unit cost × size.
-  Generated once by a script (not in Git); MER-02 (Passer promenade) and POS-01/POS-02
-  (Adige at Postal) were measured on the map and placed on the real banks.
-  `load_sample_nbs` reads GeoJSON, matches by `code`, `--replace`, `--file`. Old CSV removed
-- **API:** NbS feature = full geometry in 4326 + `marker` [lon, lat] (`PointOnSurface`) +
-  `geometry_type`, `area_m2`, `length_m`, `code`; `defer('geom')`; `near` uses
-  `geom__dwithin` (nearest part). `/api/summary/` (`totals`, `by_geometry`
-  {points, lines, polygons}, `by_type` with average benefits, `by_municipality`);
-  `GeometryType` via `Func`. First request also reads `spatial_ref_sys` once (tests warm up)
-- **Pages:** `dashboard/templates/dashboard/base.html` (nav, API URLs incl.
-  `data-summary-url`, `data-map-url`), `overview.html` at `/` (name `overview`),
-  `map.html` at `/map/` (name `map`). JS: `api.js`, `ranking.js` (+ `PRESETS`),
-  `colors.js` (score classes, heatmap ramp without step 450), `format.js`,
-  `overview.js` (KPIs, bars, heatmap, log-scale scatter, top 5, tooltip), `map.js`
-  (municipality pane below shapes, shapes + white casing for lines, markers, select →
-  fly + popup + card + `#nbs=<id>`, chips, datalist search, presets, sliders,
-  collapse with `transitionend` + 300 ms fallback, bottom sheet on phones)
-- **Design:** tokens in `dashboard.css` (light/dark), green = UI, blue = data,
-  `prefers-reduced-motion`, sheet `z-index: 1001` above Leaflet controls
-- **Verified in the browser:** numbers in GUIDE §8.2 (Balanced top TIR-02 81, MER-05 80,
-  MER-02 80, last MER-03 49; Flood POS-01 81; Low budget MER-02 84; totals €9.1M,
-  4.9 ha, 5.1 km), click-to-zoom, deep link, collapse, phone layouts. 19 tests OK
-- Testing gotchas: the hidden browser pane pauses animations; the browser caches CSS
-  (check with a `?v=` reload)
-
-### Phase 1 log: Milestones 5–7 (done 2026-10-27)
-
-- **Decision (2026-10-27): no more quizzes**; instead explain features, data flow, how
-  to change and test things (→ `docs/GUIDE.md`)
-- **API** (`catalog/`): DRF 3.16.1 + DRF-gis 1.3.0. `NbSSerializer`/`MunicipalitySerializer`
-  (`GeoFeatureModelSerializer`, geometry from a `Transform(…, 4326)` annotation,
-  precision 6/5; municipality `id_field`/`lookup_field` = `istat_code`, `area_km2`,
-  `nbs_count`). `NbSViewSet` (`select_related`: 1 query instead of 13; filters `type`
-  (repeatable), `municipality`, `near`+`radius`; bad values → 400). `nbs_types`
-  (`@api_view`). URLs: `/api/`, `/api/nbs/`, `/api/municipalities/<istat_code>/`,
-  `/api/nbs-types/`
-- **Aldino accident:** an admin click added a 2.14 km² part (LogEntry 10:31) → restored
-  with `import_municipalities`; boundaries now read-only in the admin
-  (`ReadOnlyOSMWidget` template switches off draw/modify; `field.disabled = True`;
-  no add)
-- **Dashboard** (`dashboard/` app, no models): `TemplateView` at `/`, API URLs in
-  `<body data-…>` via `{% url %}`. JS modules: `api.js` (`getJSON`), `ranking.js`
-  (`CRITERIA`, `rankNbs`: weighted sum, benefits /5, cost min–max over shown NbS,
-  weights 0–10 default 5, `parts` per criterion), `dashboard.js` (map, outlines, type
-  checkboxes + municipality dropdown → server filters, sliders → browser ranking,
-  divIcon markers coloured by 4 score classes `#86b6ef/#5598e7/#256abf/#104281`
-  (validated ordinal ramp), rank 1–3 on markers, list, legend, popups with points,
-  `escapeHtml`, `window.dashboard` for the console). Responsive (stacked < 800 px),
-  dark panel in dark mode
-- **Verified:** JS ranking = independent Python calculation (equal weights: 79, 75, 71
-  … 50; flood only: top three 100); filter requests; popup points; phone layout;
-  15 Django tests OK (`manage.py test`)
-- Removed the Milestone 2 prototype (`frontend/`, `scripts/build_municipalities_geojson.sh`;
-  still in Git history); ISTAT URL + SHA256 now in `import_municipalities.py`.
-  `.claude/launch.json`: "dashboard" (attach to http://localhost:8000)
-- Gotcha: a new app's `templates/` folder created after the dev server started →
-  `TemplateDoesNotExist` → `docker compose restart web`
-
-### Environment and conventions
+## Environment and conventions
 
 - **Tools (checked 2026-10-26):** Git 2.56, GitHub CLI 2.103 logged in as
   `alireza-soleiman` (HTTPS, `repo` scope). Docker client 29.2, engine 29.9.
@@ -238,74 +203,7 @@ city where Eurac is based as an example in this project.
   global stays Gmail).
 - **Data folders:** `data/raw/` = big downloads (ignored) · `data/sample/` = small sample
   data, e.g. NbS (committed). The map gets all data from the API (no static files)
-
-### Milestone 4 log (done 2026-10-27)
-
-- **Decision: geometries stored in EPSG:25832** (`catalog.models.SRID`); the API
-  transforms to 4326
-- App `catalog`: `Municipality` (`istat_code` unique, `name`, `name_alt`, `geom`
-  MultiPolygon 25832) and `NbS` (`name`, `nbs_type` TextChoices with 9 types,
-  `description`, `cost_eur`, `benefit_heat/flood/biodiversity/wellbeing` 0–5 (validator
-  only, no DB check), `location` Point 25832, `municipality` FK filled in `save()` via
-  `geom__contains`). Migration `0001_initial` (GiST indexes created by Django)
-- `GISModelAdmin` for both (OpenLayers 7.2.2 + OSM). Admin user `admin`, data in `.env`
-  (`DJANGO_SUPERUSER_*`), `createsuperuser --noinput` → http://localhost:8000/admin/.
-  Fix: `SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'` (OSM tiles need a
-  Referer)
-- Commands: `import_municipalities` (GDAL `DataSource`, 116, re-runnable),
-  `load_sample_nbs` (`data/sample/nbs_sample.csv`, 12 **fictional** NbS, `full_clean()`
-  before `save()`): Merano 5, Lana 2, Naturno, Marlengo, Lagundo, Postal, Scena 1 each;
-  total 2,930,000 EUR
-- `scripts/orm_queries.py`: M3 questions in the ORM (`dwithin` + `D()`, `Distance`,
-  `Sum`, `Centroid`/`PointOnSurface`, `Transform`)
-- Old M3 table `istat_municipalities` still exists (SQL playground)
-
-### Milestone 3 log (done 2026-10-27)
-
-- `sql/` mounted read-only into `db` at `/sql`. `scripts/load_municipalities_postgis.sh`
-  → table `istat_municipalities` (116 rows, MultiPolygon 25832, GiST). Needed
-  `-lco PRECISION=NO` (shapefile `numeric(18,11)` overflowed)
-- `sql/01_explore.sql` (province 7,400 km², Merano 25.98 km², multipart: Lagundo,
-  Termeno) · `02_projections.sql` (Merano: 25.98 km² in 25832, 0.003054 sq degrees in
-  4326, 25.99 km² geography, 55.14 km² in 3857) · `03_relationships.sql` (9 neighbours,
-  point in polygon needs `ST_Transform`, centroid outside: Santa Cristina Valgardena) ·
-  `04_buffers_distance.sql` (`<->`, `ST_DWithin`, `ST_Buffer`, `EXPLAIN ANALYZE`: index =
-  bounding-box test then exact filter)
-- Quiz: all 3 unknown → explained. Demo: mixed SRIDs inside `WHERE` give **0 rows, no
-  error**
-
-### Milestone 2 log (done 2026-10-27)
-
-- `frontend/` (`index.html`, `css/map.css`, `js/map.js`): Leaflet 1.9.4 from unpkg with
-  SRI `integrity`, OSM tiles, 116 municipalities via `fetch` + `L.geoJSON` (style
-  function with Merano highlighted, tooltip, popup, hover + `resetStyle`, `fitBounds`,
-  ISTAT attribution). Focus-outline rectangle hidden with
-  `.leaflet-interactive:focus { outline: none; }`
-- Served with `python -m http.server 8080 --bind 127.0.0.1 --directory frontend`
-  ("map" in `.claude/launch.json`) → http://localhost:8080
-- Data: ISTAT `data/raw/Limiti01012026_g.zip` (10.0 MB, boundaries at 1 Jan 2026),
-  layer `Com01012026_g_WGS84`, **EPSG:32632**, fields `COD_PROV`, `PRO_COM_T` (ISTAT
-  code), `COMUNE` (bilingual name), `COMUNE_A`, `Shape_Area`. South Tyrol =
-  `COD_PROV = 21` → 116. Merano = `021051`, "Merano/Meran"
-- `scripts/build_municipalities_geojson.sh` → `frontend/data/municipalities.geojson`
-  (386 KB, EPSG:4326, RFC 7946, 5 decimals, `istat_code` + `name`)
-
-### Milestone 1 log (done 2026-10-26 → 2026-10-27)
-
-- Project rules in `CLAUDE.md`; teaching rules changed 2026-10-26 (Claude writes all
-  code); output style **Explanatory** since 2026-10-27
-- Git on `main`; `.gitignore` (Python, venv, Django, `.env*` except `.env.example`,
-  `pgdata/`, `*.dump`, `*.backup`, `data/raw/`); `.gitattributes` (LF line endings)
-- Public repo https://github.com/alireza-soleiman/nbs-mini-dashboard as `origin`;
-  first push 2026-10-27 after rewriting all commits to the noreply email
-- `compose.yaml`: `db` = `postgis/postgis:17-3.5` (named volume `nbs_pgdata`,
-  healthcheck, `127.0.0.1:5433`, database/user `nbs`); `web` = Django built from
-  `Dockerfile` (`python:3.12-slim-trixie` + Debian `gdal-bin`), code bind-mounted at
-  `/app`, waits for a healthy `db`, `127.0.0.1:8000`
-- **Decision 2026-10-27: Django runs in Docker** (no GDAL install on Windows).
-  In the image: Django 5.2.18 (LTS), psycopg 3, GDAL 3.10.3, GEOS 3.13.1
-- Django project `config`: `settings.py` reads `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`,
-  `DJANGO_ALLOWED_HOSTS`, `POSTGRES_*` from env vars (`.env`, template `.env.example`);
-  `postgis` backend; `django.contrib.gis`; `TIME_ZONE = 'Europe/Rome'`
-- Verified: PostgreSQL 17.5 + PostGIS 3.5.2, `migrate` OK, Merano EPSG:4326 → EPSG:25832
-  = (665194, 5170903), Django welcome page at http://localhost:8000
+- **Testing lessons (both chats):** never work around a stale browser cache in tests
+  with a forced refresh – the user's browser has the same problem; a hidden browser pane
+  pauses `requestAnimationFrame` and CSS animations (map tiles, fades); never click a
+  file-upload button in browser automation (the native dialog freezes the tab)
