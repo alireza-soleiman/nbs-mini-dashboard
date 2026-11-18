@@ -6,8 +6,15 @@ Django creates a separate, empty test database (test_nbs) and deletes it afterwa
 so these tests never touch the real data.
 """
 
+import io
+import json
+import os
+import tempfile
+
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import LineString, MultiPolygon, Point, Polygon
+from django.core.exceptions import ValidationError
+from django.core.management import CommandError, call_command
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from rest_framework.test import APITestCase
@@ -161,6 +168,65 @@ class BenefitScoreConstraintTests(TestCase):
         # atomic(): the failed INSERT must not break the rest of the test transaction.
         with self.assertRaises(IntegrityError), transaction.atomic():
             nbs.save()
+        self.assertEqual(NbS.objects.count(), 0)
+
+
+class LoadSampleNbsCommandTests(TestCase):
+    """load_sample_nbs: creates, updates by code, --replace, and all-or-nothing."""
+
+    @classmethod
+    def setUpTestData(cls):
+        box = Polygon.from_bbox((11.10, 46.63, 11.22, 46.70))
+        cls.town = Municipality.objects.create(
+            istat_code='999001', name='Test town', geom=MultiPolygon(box, srid=4326),
+        )
+
+    def feature(self, code, heat=3):
+        """One GeoJSON feature with the properties the command expects."""
+        return {
+            'type': 'Feature',
+            'geometry': {'type': 'Point', 'coordinates': [11.16, 46.67]},  # in Test town
+            'properties': {
+                'code': code, 'name': f'NbS {code}', 'nbs_type': 'rain_garden',
+                'description': '', 'cost_eur': 1000, 'benefit_heat': heat,
+                'benefit_flood': 2, 'benefit_biodiversity': 2, 'benefit_wellbeing': 2,
+            },
+        }
+
+    def load(self, features, *options):
+        """Write the features to a temporary GeoJSON file and run the command on it."""
+        handle = tempfile.NamedTemporaryFile('w', suffix='.geojson', delete=False, encoding='utf-8')
+        json.dump({'type': 'FeatureCollection', 'features': features}, handle)
+        handle.close()
+        self.addCleanup(os.remove, handle.name)
+        call_command('load_sample_nbs', '--file', handle.name, *options, stdout=io.StringIO())
+
+    def test_creates_then_updates_by_code(self):
+        self.load([self.feature('T-01'), self.feature('T-02')])
+        self.assertEqual(NbS.objects.count(), 2)
+        self.assertEqual(NbS.objects.get(code='T-01').municipality, self.town)
+
+        self.load([self.feature('T-01', heat=5)])            # same code again
+        self.assertEqual(NbS.objects.count(), 2)              # updated, not duplicated
+        self.assertEqual(NbS.objects.get(code='T-01').benefit_heat, 5)
+
+    def test_replace_deletes_all_other_nbs(self):
+        self.load([self.feature('T-01'), self.feature('T-02')])
+        self.load([self.feature('T-01')], '--replace')
+        self.assertEqual(list(NbS.objects.values_list('code', flat=True)), ['T-01'])
+
+    def test_one_bad_feature_changes_nothing(self):
+        self.load([self.feature('T-01', heat=3)])
+        # The first feature would be a valid update, the second has a score of 9
+        with self.assertRaises(ValidationError):
+            self.load([self.feature('T-01', heat=4), self.feature('T-02', heat=9)])
+        # @transaction.atomic undid the first update too
+        self.assertEqual(NbS.objects.count(), 1)
+        self.assertEqual(NbS.objects.get(code='T-01').benefit_heat, 3)
+
+    def test_every_feature_needs_a_unique_code(self):
+        with self.assertRaises(CommandError):
+            self.load([self.feature('T-01'), self.feature('T-01')])
         self.assertEqual(NbS.objects.count(), 0)
 
 
