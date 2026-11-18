@@ -1,0 +1,50 @@
+# Runs all tests on GitHub's computers for every push and pull request (Milestone 8).
+# Results: the "Actions" tab of the repository, and a ✓ or ✗ next to each commit.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  django:
+    name: Django tests (PostGIS in Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The same containers as on the PC. The test run needs no real secrets: .env is
+      # made from the template, with random values for the key and the password.
+      - name: Create .env for this run
+        run: |
+          cp .env.example .env
+          sed -i "s/^DJANGO_SECRET_KEY=.*/DJANGO_SECRET_KEY=$(openssl rand -hex 32)/" .env
+          sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 16)/" .env
+
+      - name: Build the image
+        run: docker compose build web
+
+      - name: Start the database and wait until it is healthy
+        run: docker compose up -d --wait db
+
+      - name: Django tests
+        run: docker compose run --rm web python manage.py test
+
+      - name: No model change without a migration
+        run: docker compose run --rm web python manage.py makemigrations --check --dry-run
+
+      - name: Production checklist (DEBUG off, HTTPS on) - any warning fails
+        run: >-
+          docker compose run --rm -e DJANGO_DEBUG=0 -e DJANGO_HTTPS=1 web
+          python manage.py check --deploy --fail-level WARNING
+
+  javascript:
+    name: JavaScript tests (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Ranking tests
+        run: node --test "tests/js/*.test.mjs"
