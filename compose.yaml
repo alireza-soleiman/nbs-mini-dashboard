@@ -43,6 +43,11 @@ services:
     # Development server: reloads when code changes (the image itself starts gunicorn,
     # see compose.prod.yaml for the server setup)
     command: python manage.py runserver 0.0.0.0:8000
+    # The image runs as the ordinary user "app" (safer on a server), but in development
+    # Django must write into the mounted Windows folder (e.g. makemigrations), and the
+    # mount only lets root write into the subfolders. Development only: compose.prod.yaml
+    # keeps "app", and this container is reachable only from this PC (127.0.0.1).
+    user: root
     # Django reads its settings and secrets from these environment variables
     env_file: .env
     environment:

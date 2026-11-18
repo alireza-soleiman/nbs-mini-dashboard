@@ -80,6 +80,14 @@ class NbS(models.Model):
         ordering = ['name']
         verbose_name = 'NbS'
         verbose_name_plural = 'NbS'
+        # The 0-5 rule also inside PostgreSQL (Milestone 8). The validator above only
+        # works in forms and full_clean(); a CHECK constraint stops every other way in
+        # (a script, raw SQL). "Positive…Field" already makes PostgreSQL refuse < 0.
+        constraints = [
+            models.CheckConstraint(condition=models.Q(**{f'{field}__lte': 5}),
+                                   name=f'nbs_{field}_at_most_5')
+            for field in ('benefit_heat', 'benefit_flood', 'benefit_biodiversity', 'benefit_wellbeing')
+        ]
 
     def __str__(self):
         return self.name

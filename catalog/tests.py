@@ -8,6 +8,7 @@ so these tests never touch the real data.
 
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import LineString, MultiPolygon, Point, Polygon
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from rest_framework.test import APITestCase
 
@@ -147,6 +148,20 @@ class CatalogApiTests(APITestCase):
             {'istat_code': '999001', 'name': 'Test town', 'count': 3, 'cost_eur': 3000}])
         roof = next(t for t in data['by_type'] if t['value'] == 'green_roof')
         self.assertEqual((roof['label'], roof['count'], roof['heat']), ('Green roof', 1, 1.0))
+
+
+class BenefitScoreConstraintTests(TestCase):
+    """The 0-5 rule lives in PostgreSQL too (CheckConstraint, Milestone 8)."""
+
+    def test_database_refuses_a_score_above_5(self):
+        nbs = NbS(name='Too good to be true', nbs_type='wetland', cost_eur=1000,
+                  geom=Point(11.16, 46.67, srid=4326), benefit_heat=6,
+                  benefit_flood=1, benefit_biodiversity=1, benefit_wellbeing=1)
+        # save() does NOT run the validators, so only the database can stop this.
+        # atomic(): the failed INSERT must not break the rest of the test transaction.
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            nbs.save()
+        self.assertEqual(NbS.objects.count(), 0)
 
 
 class MunicipalityAdminTests(TestCase):
