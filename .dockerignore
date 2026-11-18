@@ -10,6 +10,8 @@ pgdata/
 *.dump
 *.backup
 data/raw/
+# made inside the image by collectstatic; a local copy must not be mixed in
+staticfiles/
 .claude/
 .vscode/
 .idea/

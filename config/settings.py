@@ -37,6 +37,33 @@ ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').sp
 # This value (also the browsers' default) sends only the origin, never the path.
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
+# --- HTTPS on a real server (Milestone 8) --------------------------------------------
+# Switched on with DJANGO_HTTPS=1 in the server's .env. Locally (http://localhost) it
+# stays off: SECURE_SSL_REDIRECT would send the browser to https://localhost, which
+# does not exist. `manage.py check --deploy` lists exactly these settings.
+HTTPS = os.environ.get('DJANGO_HTTPS', '0') == '1'
+if HTTPS:
+    SECURE_SSL_REDIRECT = True        # http://… is answered with a redirect to https://…
+    SESSION_COOKIE_SECURE = True      # the login cookie travels only over HTTPS
+    CSRF_COOKIE_SECURE = True         # the form-protection cookie too
+    # HSTS: the browser remembers "this site is HTTPS only" for this many seconds.
+    # Start small (1 hour); raise it (e.g. 31536000 = 1 year) once HTTPS works reliably,
+    # because a browser that has seen the header refuses plain http until it expires.
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '3600'))
+    # Behind a reverse proxy (nginx, Traefik, a load balancer …) Django itself receives
+    # plain http; the proxy reports the original scheme in this header. Only safe when
+    # a proxy that sets the header always sits in front of Django.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Full addresses that may send forms (the admin login), e.g. https://nbs.example.org
+CSRF_TRUSTED_ORIGINS = [o for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o]
+
+# Two HSTS options are left off on purpose, so their warnings are silenced:
+#   W005 includeSubDomains: would also force HTTPS on every subdomain of the host.
+#        Only the hosting team can decide that (it may break other sites).
+#   W021 preload: puts the domain on a list built into browsers; hard to undo.
+SILENCED_SYSTEM_CHECKS = ['security.W005', 'security.W021']
+
 
 # Application definition
 
@@ -46,6 +73,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # Must come before staticfiles: `runserver` then also uses WhiteNoise, so files are
+    # served the same way on the PC and on the server (and are never cached stale)
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     # GeoDjango: geometry model fields, spatial lookups, GIS admin widgets
     'django.contrib.gis',
@@ -59,6 +89,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serves the static files (CSS, JS) directly from Django, right after the security
+    # headers and before everything else (it answers without touching sessions or the DB)
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -139,6 +172,29 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# `manage.py collectstatic` copies the static files of every app into this one folder;
+# on the server WhiteNoise serves them from here (not in Git: .gitignore)
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    # On the server: hashed names (map.3f9a1c.js) + compressed copies, see config/storage.py.
+    # On the PC (DEBUG): the plain files, so code changes show up at once.
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG
+                    else 'config.storage.StaticStorage'},
+}
+
+# Logging: everything to the console, so `docker compose logs web` shows it. Without
+# this, Django sends server errors (500) only by e-mail to ADMINS when DEBUG is off,
+# and on a server without e-mail settings an error would leave no trace at all.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {'plain': {'format': '{asctime} {levelname} {name}: {message}', 'style': '{'}},
+    'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'plain'}},
+    'root': {'handlers': ['console'], 'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO')},
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
