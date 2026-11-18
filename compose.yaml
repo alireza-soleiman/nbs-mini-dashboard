@@ -40,6 +40,9 @@ services:
   web:
     # Built from the Dockerfile in this folder
     build: .
+    # Development server: reloads when code changes (the image itself starts gunicorn,
+    # see compose.prod.yaml for the server setup)
+    command: python manage.py runserver 0.0.0.0:8000
     # Django reads its settings and secrets from these environment variables
     env_file: .env
     environment:

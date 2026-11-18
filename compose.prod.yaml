@@ -1,0 +1,50 @@
+# Server setup for the NbS mini-dashboard (Milestone 8). Compared to compose.yaml:
+#   - gunicorn instead of runserver, DEBUG off
+#   - the code is inside the image (no folder mounted), static files are collected
+#   - the database has no open port: only Django talks to it
+#   - both services restart by themselves after a crash or a reboot
+#
+#   docker compose -f compose.prod.yaml up -d --build      build and start
+#   docker compose -f compose.prod.yaml exec web python manage.py migrate
+#   docker compose -f compose.prod.yaml logs -f web       follow the logs
+#
+# On a real server, HTTPS is added by a reverse proxy in front (e.g. nginx or Traefik)
+# and .env sets DJANGO_HTTPS=1, DJANGO_ALLOWED_HOSTS and DJANGO_CSRF_TRUSTED_ORIGINS.
+# On this PC it uses the same project name and database volume as compose.yaml:
+# it replaces the development containers, and `docker compose up -d` switches back.
+
+name: nbs
+
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build: .
+    env_file: .env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      DJANGO_DEBUG: "0"            # wins over the value in .env
+    ports:
+      # On a server the reverse proxy connects here; 127.0.0.1 keeps it off the internet
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
