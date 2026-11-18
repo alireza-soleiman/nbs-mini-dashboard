@@ -93,7 +93,7 @@ below are the same in both. Each chat keeps its own detailed notes.
 
 | Chat | Covers | Notes (read at the start) |
 |---|---|---|
-| **1 – Dashboard Development** | the codebase: architecture, front end, back end, database, data processing, GIS, tests, deployment; branches `main`, `maplibre-prototype`, Phase 3; later the real dashboard | `docs/DEVELOPMENT_NOTES.md` (in Git) |
+| **1 – Dashboard Development** | the codebase: architecture, front end, back end, database, data processing, GIS, tests, deployment; branch `main` (the 3D prototype is archived as tag `archive/maplibre-prototype`); later the real dashboard | `docs/DEVELOPMENT_NOTES.md` (in Git) |
 | **2 – HTML Mockups & Questionnaires** | the 4 HTML mockups (`meeting-mockup/`, built from branch `team-demo`), UI/UX and design discussions, the Eurac meeting, feedback form, requirements documents, questionnaires (`questionnaires/`) | `questionnaires/NOTES.md` (local only) |
 
 **Keeping the two chats consistent:**
@@ -121,10 +121,11 @@ below are the same in both. Each chat keeps its own detailed notes.
 6. **End of each task:** update the own notes file; if something changed for both, also
    **Shared decisions** or **Current status** here.
 7. **The same notes on every branch.** `CLAUDE.md` and `docs/DEVELOPMENT_NOTES.md` are
-   project notes, not branch code, so they must be identical on `main`, `team-demo` and
-   `maplibre-prototype` (otherwise a branch switch loads old rules). After changing them
-   on one branch, copy them to the other branches through a temporary `git worktree`
-   (no branch switch in the shared checkout) and commit there too.
+   project notes, not branch code, so they must be identical on every branch (now `main`
+   and `team-demo`; otherwise a branch switch loads old rules). After changing them on
+   one branch, copy them to the other branches through a temporary `git worktree` (no
+   branch switch in the shared checkout) and commit there too. Archived tags are not
+   updated.
 
 
 ## Shared decisions (both chats)
@@ -166,8 +167,9 @@ Dated decisions that affect both work areas. Add new ones here (with "affects: �
 - **Chat 1 – Dashboard Development:** Phases 1–2 done; **Phase 3 (Milestone 8, handover
   quality) done 2026-11-18 on `main`**: production settings, WhiteNoise, gunicorn,
   `compose.prod.yaml`, pinned packages, score constraint, 24 Django + 8 JS tests, GitHub
-  Actions (details: `docs/DEVELOPMENT_NOTES.md`). Next: push + first CI run; then
-  learning spikes chosen by Eurac's answers; 3D branch decision (archive?) is mine.
+  Actions (details: `docs/DEVELOPMENT_NOTES.md`); pushed, first CI run green. The 3D
+  branch is archived as tag `archive/maplibre-prototype` (local). Next: learning spikes
+  chosen by Eurac's answers — **waiting for my go-ahead**.
   Requirements first: no development for the real dashboard before the Eurac scope is
   agreed (see Shared decisions). The shared folder is on `main` now: Chat 2 needs
   `team-demo` only to rebuild the mockups (ask me first)
