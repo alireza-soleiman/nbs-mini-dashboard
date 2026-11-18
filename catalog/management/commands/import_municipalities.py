@@ -18,7 +18,8 @@ from django.db import transaction
 
 from catalog.models import SRID, Municipality
 
-# The shapefile inside the ISTAT zip (see scripts/build_municipalities_geojson.sh)
+# The shapefile inside the ISTAT zip. GDAL reads it straight from the zip ("/vsizip/"),
+# so the file never has to be unpacked.
 SOURCE = '/vsizip/data/raw/Limiti01012026_g.zip/Com01012026_g/Com01012026_g_WGS84.shp'
 SOUTH_TYROL = 21  # ISTAT province code (COD_PROV)
 

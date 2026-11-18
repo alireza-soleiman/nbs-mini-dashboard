@@ -13,3 +13,8 @@ data/raw/
 .claude/
 .vscode/
 .idea/
+# Local-only folders (not in Git): partner material and recordings must never end up
+# in an image, even if the image is shared later
+meeting-mockup/
+questionnaires/
+linkedin/
