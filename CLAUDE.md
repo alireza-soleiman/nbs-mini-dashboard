@@ -161,6 +161,17 @@ Dated decisions that affect both work areas. Add new ones here (with "affects: �
   (`first_round/images/`). The old Forms draft can become Document 1 or be deleted
 - **Two chats (2026-11-16):** the work is split into Chat 1 Dashboard Development and
   Chat 2 HTML Mockups & Questionnaires (see "Work areas" above). Affects: both
+- **One questionnaire (2026-11-18, my decision):** the two documents of the new approach
+  become **one Word file** (`questionnaires/first_round/EURAC_NbS_Dashboard_Questionnaire.docx`,
+  `build_questionnaire.js`): no scores or ratings (the goal is to understand what they
+  need, not to judge the mockup) and no screenshots (the codes in the 4 HTML files are
+  enough). Part 1 follows the mockup tab by tab (O1–O7, M1–M6, C1–C2, A1–A7: what it
+  shows, guiding questions, a box to write in). Part 2 = requirements for the real
+  dashboard: server/hosting/deployment, data sources and database, languages, users/roles/
+  access, project and timeline, design/accessibility/legal, testing and maintenance,
+  contacts. The Forms form and Document 2 are replaced (kept, not sent). Affects: Chat 2
+  (what is sent after the meeting); Chat 1 (the Part 2 answers are the input for the
+  technical planning and the learning spikes)
 
 ## Current status (short – details in the area notes)
 
@@ -174,8 +185,9 @@ Dated decisions that affect both work areas. Add new ones here (with "affects: �
   agreed (see Shared decisions). The shared folder is on `main` now: Chat 2 needs
   `team-demo` only to rebuild the mockups (ask me first)
 - **Chat 2 – Mockups & Questionnaires:** the 4 HTML mockups with code labels are ready;
-  the feedback form is built in Microsoft Forms (unshared); Document 2 (Word) is ready.
-  Next: the team meeting, then share the form + the mockup zip and send Document 2
+  **one Word questionnaire** (24 pages, Part 1 mockup + Part 2 requirements) is built —
+  **waiting for my review**. Next: the team meeting, then send the questionnaire + the
+  mockup zip
 - **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
 
 ## Learning notes
