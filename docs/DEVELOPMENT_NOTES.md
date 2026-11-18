@@ -76,6 +76,33 @@ Chat 2 (`questionnaires/NOTES.md`, local only).
   dependencies, `CheckConstraint`, JS tests with `node:test`, GitHub Actions) → learning
   spikes chosen by Eurac's answers (vulnerability layer, DE/IT, roles, file upload, real
   Simos-Roy-Figueira weights); 3D branch: archive with a tag (team: 3D not needed)
+- **Phase 3 = Milestone 8, handover quality (2026-11-18, on `main`):** my choice after
+  the review: quick fixes + Phase 3. Commits: quick fixes (`.dockerignore` excludes
+  `meeting-mockup/`, `questionnaires/`, `linkedin/`, `staticfiles/`; checked by listing
+  `/app` in a built image) · settings (`DJANGO_HTTPS` switch: SSL redirect, secure
+  cookies, HSTS 3600 s by default, `SECURE_PROXY_SSL_HEADER`; `CSRF_TRUSTED_ORIGINS`,
+  `DJANGO_LOG_LEVEL` from `.env`; W005/W021 silenced with the reason; `STATIC_ROOT`;
+  `STORAGES` = plain files when DEBUG, else `config.storage.StaticStorage` =
+  WhiteNoise `CompressedManifestStaticFilesStorage` + `support_js_module_import_aggregation`
+  (rewrites `import … from "./api.<hash>.js"`, double quotes); `whitenoise.runserver_nostatic`
+  → dev sends `max-age=0`; LOGGING to console) · server (Dockerfile: user `app`
+  uid 10001, `collectstatic` at build with dummy env, CMD gunicorn 3 workers +
+  access log; `compose.yaml` keeps `runserver` and **`user: root`** – the Windows mount
+  lets only root write into subfolders (makemigrations failed as `app`);
+  `compose.prod.yaml`: same project name/volume, DEBUG 0, no code mount, db without
+  port, restart policies) · pinned packages (`requirements.in` → `requirements.txt`
+  by pip-compile in a throwaway root container: Django 5.2.19, DRF 3.16.1, DRF-gis
+  1.3.0, psycopg 3.3.9, WhiteNoise 6.12.0, gunicorn 23.0.0) · `CheckConstraint` ≤ 5 on
+  the 4 benefits (migration `0003_benefit_scores_at_most_5`; the 3D branch also has a
+  `0003` → a merge migration would be needed if it is ever merged) · tests: 24 Django
+  (+ constraint, + 4 for `load_sample_nbs`) and 8 JS (`tests/js/ranking.test.mjs`,
+  `node --test "tests/js/*.test.mjs"`; a folder argument fails in Node 24; `.mjs`
+  because no `package.json` – a root `"type": "module"` would break CommonJS scripts) ·
+  CI `.github/workflows/tests.yml` (Django job in Docker with a random `.env`,
+  `makemigrations --check`, `check --deploy --fail-level WARNING`; JS job Node 24;
+  checkout/setup-node v5). Verified: server mode in the browser (hashed modules load,
+  same numbers, no console errors), gzip + `immutable` headers, plain 404, logs.
+  Docs: README "Running it like on a server", GUIDE §8.1/§8.4/§9/§10, LEARNING Phase 3
 
 ### Phase 2 log (done 2026-10-27)
 
