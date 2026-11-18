@@ -163,11 +163,14 @@ Dated decisions that affect both work areas. Add new ones here (with "affects: �
 
 ## Current status (short – details in the area notes)
 
-- **Chat 1 – Dashboard Development:** Phase 1 and Phase 2 done and pushed; real NbS
-  shapes on `main`; 3D prototype on `maplibre-prototype` (local). **Phase 3** (Milestone
-  8, handover quality) and the 3D branch decision are paused — **waiting for my
-  go-ahead**. Requirements first: no development for the real dashboard before the
-  Eurac scope is agreed (see Shared decisions)
+- **Chat 1 – Dashboard Development:** Phases 1–2 done; **Phase 3 (Milestone 8, handover
+  quality) done 2026-11-18 on `main`**: production settings, WhiteNoise, gunicorn,
+  `compose.prod.yaml`, pinned packages, score constraint, 24 Django + 8 JS tests, GitHub
+  Actions (details: `docs/DEVELOPMENT_NOTES.md`). Next: push + first CI run; then
+  learning spikes chosen by Eurac's answers; 3D branch decision (archive?) is mine.
+  Requirements first: no development for the real dashboard before the Eurac scope is
+  agreed (see Shared decisions). The shared folder is on `main` now: Chat 2 needs
+  `team-demo` only to rebuild the mockups (ask me first)
 - **Chat 2 – Mockups & Questionnaires:** the 4 HTML mockups with code labels are ready;
   the feedback form is built in Microsoft Forms (unshared); Document 2 (Word) is ready.
   Next: the team meeting, then share the form + the mockup zip and send Document 2
