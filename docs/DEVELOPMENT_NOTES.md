@@ -60,6 +60,22 @@ Chat 2 (`questionnaires/NOTES.md`, local only).
   without 3D buildings (satellite, light); click/hover work on all. 21 tests OK
 - **Phases renamed (2026-10-27):** Phase 2 = richer dashboard (was not planned);
   handover quality moved to Phase 3
+- **Review of the whole dashboard (2026-11-18, `main`, ≈2,500 lines):** 25 tests OK (run
+  on `team-demo` = main's 19 + 6). `check --deploy` with DEBUG off: 4 HTTPS warnings
+  (W004 HSTS, W008 SSL redirect, W012/W016 secure cookies). Outdated: DRF 3.16.1 (3.18.3
+  exists), psycopg 3.3.6 (3.3.9); Django stays on 5.2 LTS (supported to April 2028).
+  Findings: `runserver` in the image, no `STATIC_ROOT`/collectstatic, container runs as
+  root; `.dockerignore` misses the local `meeting-mockup/`, `questionnaires/`,
+  `linkedin/` (`COPY . .` would put partner material into the image); version ranges, no
+  lock file; no CI; 0–5 scores only by validators (no `CheckConstraint`); stale reference
+  to the removed `scripts/build_municipalities_geojson.sh` in `import_municipalities.py`;
+  `ranking.js` has no automated tests; API without pagination or caching (fine for 29,
+  not for thousands); standard OSM tiles and the unpkg CDN are not for production; English
+  only; no roles besides the Django admin; no vulnerability layer on `main`. Options:
+  quick fixes → **Phase 3** (production settings, gunicorn, static files, pinned
+  dependencies, `CheckConstraint`, JS tests with `node:test`, GitHub Actions) → learning
+  spikes chosen by Eurac's answers (vulnerability layer, DE/IT, roles, file upload, real
+  Simos-Roy-Figueira weights); 3D branch: archive with a tag (team: 3D not needed)
 
 ### Phase 2 log (done 2026-10-27)
 
