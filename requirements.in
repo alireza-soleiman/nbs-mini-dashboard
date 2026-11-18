@@ -1,0 +1,10 @@
+# The packages we WANT (direct dependencies, with allowed version ranges).
+# Edit this file, then generate the exact list that the image installs:
+#   docker compose run --rm --no-deps --user root web sh -c "pip install pip-tools && pip-compile --strip-extras requirements.in"
+# Then rebuild (docker compose build web), run the tests and commit both files.
+Django>=5.2,<5.3            # LTS release, supported until April 2028
+psycopg[binary]>=3.2,<4     # PostgreSQL driver (version 3)
+djangorestframework>=3.16,<3.17   # REST API framework (serializers, views, browsable API)
+djangorestframework-gis>=1.1,<2   # GeoJSON serializers and fields for DRF
+whitenoise>=6.8,<7          # serves the static files (CSS, JS) with hashed names (Milestone 8)
+gunicorn>=23,<24            # production web server instead of `runserver` (Milestone 8)
