@@ -263,12 +263,26 @@ docker compose exec web python manage.py createsuperuser --noinput
 docker compose exec web python manage.py test
 ```
 
-Expected: `Ran 19 tests … OK`. They run in a separate, empty test database and check:
+Expected: `Ran 24 tests … OK`. They run in a separate, empty test database and check:
 GeoJSON with lon/lat coordinates; one SQL query per list (no N+1); polygons with area
 and lines with length; the marker point inside a shape; the municipality found from a
 shape; the distance filter reaching any part of a line; all filters and their errors
 (400); the summary totals; municipality and type endpoints; the locked boundaries in
-the admin; and that both pages and their files are delivered.
+the admin; that both pages and their files are delivered; the import command (create,
+update by code, `--replace`, one bad feature changes nothing); and that the database
+itself refuses a benefit score above 5.
+
+The ranking formula has its own tests in JavaScript (Node 22 or newer, nothing to
+install):
+
+```
+node --test "tests/js/*.test.mjs"
+```
+
+Expected: `pass 8`, among them a score calculated by hand (50) and the filter effect on
+the cost part (see §5). **GitHub runs all of this on every push** (the badge in the
+README turns red if something fails; details in the repository's *Actions* tab), plus a
+check for forgotten migrations and Django's production checklist.
 
 ### 8.2 Manual checklist (with the sample data: 29 NbS)
 
@@ -332,6 +346,26 @@ the admin; and that both pages and their files are delivered.
 - **SQL**: `docker compose exec db psql -U nbs -d nbs` (examples in `sql/`), or QGIS
   with host `127.0.0.1`, port `5433`, database and user `nbs`.
 
+### 8.4 Server mode (like on a real server)
+
+```
+docker compose -f compose.prod.yaml up -d --build
+```
+
+- [ ] http://localhost:8000 and `/map/` work exactly as in development (same numbers).
+- [ ] View the page source (Ctrl+U): CSS and JS have hashed names, e.g.
+      `map.8c564d79a54a.js`; inside it the imports point to hashed files too.
+- [ ] F12 → Network → a `.js` file: `Cache-Control: max-age=315360000, public,
+      immutable` and `Content-Encoding: gzip`.
+- [ ] http://localhost:8000/does-not-exist/ → a plain "Not Found" page, **no** yellow
+      debug page with code details.
+- [ ] `docker compose -f compose.prod.yaml logs web` → gunicorn started 3 workers; one
+      line per request; the 404 above appears as `WARNING django.request`.
+- [ ] `docker compose -f compose.prod.yaml exec web whoami` → `app` (not root).
+- [ ] `docker compose -f compose.prod.yaml exec -e DJANGO_HTTPS=1 web python manage.py check --deploy`
+      → "no issues (2 silenced)".
+- [ ] Back to development: `docker compose up -d`.
+
 ## 9. When something goes wrong
 
 | What you see | Why, and what to do |
@@ -340,7 +374,11 @@ the admin; and that both pages and their files are delivered.
 | Red message "Could not load…" | The API failed → `docker compose logs web` shows the error. |
 | `TemplateDoesNotExist` after adding a new app or template folder | The dev server only looks for template folders at start → `docker compose restart web`. |
 | Grey map without background | OpenStreetMap needs a Referer header → keep `SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'` in `config/settings.py`. |
-| A change is not visible | Reload (F5). For JavaScript/CSS changes use **Ctrl+F5** (the browser caches files). |
+| A change is not visible | Reload (F5). Since Milestone 8 WhiteNoise tells the browser to check for a newer JavaScript/CSS file every time (`max-age=0`), so Ctrl+F5 is no longer needed in development. |
+| Server mode: `Missing staticfiles manifest entry` | The image was built before the file existed → `docker compose -f compose.prod.yaml up -d --build`. |
+| `PermissionError` when Django writes a file (e.g. `makemigrations`) | The development container must run as root to write into the mounted folder → keep `user: root` in `compose.yaml` (never in `compose.prod.yaml`). |
+| `IntegrityError … nbs_benefit_…_at_most_5` | A benefit score above 5 was saved; the database refuses it (Milestone 8). |
+| The tests badge on GitHub is red | Open the repository's *Actions* tab → the failed step shows the error; run the same command locally. |
 | `port is already allocated` | Another program uses the port; change `POSTGRES_HOST_PORT` in `.env`. |
 | A municipality's area looks wrong | Run `import_municipalities` again (restores all boundaries from ISTAT). |
 | `load_sample_nbs` says a code is missing or repeated | Every feature in the GeoJSON needs its own `code`. |
@@ -364,5 +402,10 @@ the admin; and that both pages and their files are delivered.
 | Design (colours, layout, phone view) | `dashboard/static/dashboard/css/dashboard.css` |
 | The sample NbS | `data/sample/nbs_sample.geojson` |
 | Which real OSM feature each sample NbS uses, unit costs | `scripts/build_sample_shapes.py` |
-| Settings (database, security) | `config/settings.py` + `.env` |
+| Settings (database, security, HTTPS, static files, logging) | `config/settings.py` + `.env` |
+| How static files are named and compressed on the server | `config/storage.py` |
+| The server setup: gunicorn, user, collected static files | `Dockerfile`, `compose.prod.yaml` |
+| Python packages (wanted → exact versions) | `requirements.in` → `requirements.txt` |
+| Tests of the ranking formula | `tests/js/ranking.test.mjs` |
+| What GitHub checks on every push | `.github/workflows/tests.yml` |
 | The demo video and screenshots (for LinkedIn) | `scripts/record_demo.py` → `linkedin/` (not in Git); the tools it needs are listed at the top of the script |

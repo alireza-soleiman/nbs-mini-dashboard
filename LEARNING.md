@@ -471,6 +471,21 @@ _Details: [docs/GUIDE.md](docs/GUIDE.md) §7.2 and `data/sample/README.md`._
 
 ## Phase 3 — Handover quality (Milestone 8)
 
-_Not started yet._ Ideas: production settings (no `runserver`, `DEBUG` off, hashed
-static file names), database `CheckConstraint` for the 0–5 scores, secret scanning
-before commits, JavaScript tests for `ranking.js`.
+Done 2026-11-18, after a review of the whole dashboard. What was built:
+
+- **Production settings** switched by `.env`: `DJANGO_HTTPS=1` → HTTPS redirect, secure
+  cookies, HSTS, proxy header; `check --deploy` reports no issues. Logging to the
+  console (otherwise server errors leave no trace when `DEBUG` is off).
+- **Static files with WhiteNoise:** hashed names (`map.8c564d79a54a.js`), also inside the
+  JavaScript imports; a 10-year browser cache that is still never stale. In development
+  `max-age=0` – the lasting fix for the stale cache of the team demo.
+- **Server mode:** gunicorn instead of `runserver`, the ordinary user `app` instead of
+  root, static files collected in the image → `compose.prod.yaml`.
+- **Exact package versions:** `requirements.in` (wanted) → `requirements.txt` (pip-compile).
+- **Database rule** for the 0–5 scores (`CheckConstraint`, migration 0003).
+- **More tests:** the import command (all or nothing) and the ranking formula in
+  JavaScript (`node:test`, 8 tests); **GitHub Actions** runs everything on every push.
+- **Quick fixes:** `.dockerignore` keeps the local partner folders out of the image.
+
+Read more: README → "Running it like on a server"; GUIDE §8.1 (automated tests), §8.4
+(server-mode checklist), §9 (new problems and fixes), §10 (where things are).

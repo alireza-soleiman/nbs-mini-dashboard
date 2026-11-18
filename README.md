@@ -1,5 +1,7 @@
 # NbS mini-dashboard
 
+[![tests](https://github.com/alireza-soleiman/nbs-mini-dashboard/actions/workflows/tests.yml/badge.svg)](https://github.com/alireza-soleiman/nbs-mini-dashboard/actions/workflows/tests.yml)
+
 A small GIS dashboard for **Nature-Based Solutions (NbS)** in South Tyrol, built as a
 learning project:
 
@@ -67,23 +69,53 @@ docker compose down       # stop; the data stays in the Docker volume
 ## Project structure
 
 ```
-config/        Django settings and URLs
-catalog/       data: models, admin, import commands, API (serializers, views), tests
-dashboard/     the pages: templates, JavaScript (overview.js, map.js, ranking.js, …), CSS
-data/sample/   sample NbS (GeoJSON, fictional)      data/raw/   downloads (not in Git)
-sql/           SQL exercises (Milestone 3)          scripts/    helper scripts
-docs/GUIDE.md  how to use, change and test the project
-compose.yaml   the two services: db (PostGIS) and web (Django)
+config/            Django settings, URLs, static-file storage
+catalog/           data: models, admin, import commands, API (serializers, views), tests
+dashboard/         the pages: templates, JavaScript (overview.js, map.js, ranking.js, …), CSS
+data/sample/       sample NbS (GeoJSON, fictional)      data/raw/   downloads (not in Git)
+sql/               SQL exercises (Milestone 3)          scripts/    helper scripts
+tests/js/          tests for the JavaScript ranking (Node's built-in test runner)
+docs/GUIDE.md      how to use, change and test the project
+compose.yaml       development: db (PostGIS) + web (Django runserver, code mounted)
+compose.prod.yaml  like on a server: gunicorn, DEBUG off, code inside the image
+requirements.in    the Python packages we want → requirements.txt (exact versions)
+.github/workflows/ the tests that GitHub runs on every push
 ```
 
 ## Tests
 
 ```
-docker compose exec web python manage.py test
+docker compose exec web python manage.py test     # 24 Django tests (API, admin, commands, …)
+node --test "tests/js/*.test.mjs"                 # 8 tests of the ranking (Node 22+)
 ```
 
-19 tests (API, shapes, summary, admin, pages). The manual checklist is in
+GitHub runs both on every push (badge at the top), plus a check for missing migrations
+and Django's production checklist. The manual checklist is in
 [docs/GUIDE.md](docs/GUIDE.md#8-testing-all-features).
+
+## Running it like on a server
+
+`compose.prod.yaml` runs the same image the way a server would: **gunicorn** instead of
+the development server, `DEBUG` off, static files collected and served with hashed names
+(WhiteNoise), the database without an open port, automatic restarts.
+
+```
+docker compose -f compose.prod.yaml up -d --build                  # build and start
+docker compose -f compose.prod.yaml exec web python manage.py migrate
+docker compose -f compose.prod.yaml logs -f web                    # one line per request
+docker compose up -d                                               # back to development
+```
+
+On a real server, put a reverse proxy with HTTPS in front (e.g. nginx or Traefik) and
+set in `.env`: `DJANGO_HTTPS=1`, `DJANGO_ALLOWED_HOSTS=<host name>`,
+`DJANGO_CSRF_TRUSTED_ORIGINS=https://<host name>`, new secrets, and `DJANGO_DEBUG=0`.
+Check with `python manage.py check --deploy` (it should report no issues). Before real
+use, also replace the standard OpenStreetMap tiles and the unpkg CDN (fine for a demo,
+not meant for production traffic).
+
+**Updating a Python package:** change the range in `requirements.in`, regenerate
+`requirements.txt` (the command is at the top of `requirements.in`), rebuild, run the
+tests, commit both files.
 
 ## Data sources and licences
 
