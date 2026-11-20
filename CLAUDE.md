@@ -187,8 +187,8 @@ Dated decisions that affect both work areas. Add new ones here (with "affects: �
   quality) done 2026-11-18 on `main`**: production settings, WhiteNoise, gunicorn,
   `compose.prod.yaml`, pinned packages, score constraint, 24 Django + 8 JS tests, GitHub
   Actions (details: `docs/DEVELOPMENT_NOTES.md`); pushed, first CI run green. The 3D
-  branch is archived as tag `archive/maplibre-prototype` (local). Next: learning spikes
-  chosen by Eurac's answers — **waiting for my go-ahead**.
+  branch is archived as tag `archive/maplibre-prototype` (on GitHub since 2026-11-20).
+  Next: learning spikes chosen by Eurac's answers — **waiting for my go-ahead**.
   Requirements first: no development for the real dashboard before the Eurac scope is
   agreed (see Shared decisions). The shared folder is on `main` now: Chat 2 needs
   `team-demo` only to rebuild the mockups (ask me first)

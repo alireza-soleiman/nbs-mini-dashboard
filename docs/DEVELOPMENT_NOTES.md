@@ -31,8 +31,9 @@ Chat 2 (`questionnaires/NOTES.md`, local only).
   of 46.6068), screenshots of MER-07/MAR-02/CER-01/POS-02/LAN-01. New numbers in GUIDE
   §5 and §8.2 (Balanced top MER-05 83, last MER-04 49; Flood POS-01 83; Low budget
   MER-05 85; totals €8.3M, 3.8 ha, 5.1 km). Licence ODbL noted in both READMEs
-- **Branch `maplibre-prototype` (local, not pushed, not merged; archived 2026-11-18 as
-  tag `archive/maplibre-prototype`, restore with
+- **Branch `maplibre-prototype` (not merged; archived 2026-11-18 as tag
+  `archive/maplibre-prototype`, tag pushed to GitHub 2026-11-20, so a fresh clone has
+  it too; restore with
   `git switch -c maplibre-prototype archive/maplibre-prototype`; the shared database
   still has its nullable `height_m` column and the migration row `0003_nbs_height_m` –
   harmless for `main`)** – its notes, copied from that branch's `CLAUDE.md` on
