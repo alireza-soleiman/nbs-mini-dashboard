@@ -172,6 +172,14 @@ Dated decisions that affect both work areas. Add new ones here (with "affects: �
   contacts. The Forms form and Document 2 are replaced (kept, not sent). Affects: Chat 2
   (what is sent after the meeting); Chat 1 (the Part 2 answers are the input for the
   technical planning and the learning spikes)
+- **Two options for Compare and Admin (2026-11-20, my decision):** the mockup now has six
+  pages: Option 2 of Compare (set up first, then Compare; 2–4 NbS; table / bar chart /
+  radar; codes CP1–CP8) and of Admin (an admin panel with a sidebar; codes AD1–AD9) next to
+  Option 1. **Both are kept** and shown to the team; one menu links all six. HTML only
+  (`meeting-mockup/option2/`, local): nothing changed in Django. Moving the chosen design
+  into Django is a **separate later task**; what it would need is listed in
+  `meeting-mockup/NOTES-option2.md`. Affects: Chat 2 (zip, questionnaire codes); Chat 1
+  (later: admin URLs, `NbS.status`, `Criterion` / `OverviewSection` models, roles)
 
 ## Current status (short – details in the area notes)
 
@@ -184,10 +192,11 @@ Dated decisions that affect both work areas. Add new ones here (with "affects: �
   Requirements first: no development for the real dashboard before the Eurac scope is
   agreed (see Shared decisions). The shared folder is on `main` now: Chat 2 needs
   `team-demo` only to rebuild the mockups (ask me first)
-- **Chat 2 – Mockups & Questionnaires:** the 4 HTML mockups with code labels are ready;
-  **one Word questionnaire** (24 pages, Part 1 mockup + Part 2 requirements) is built —
-  **waiting for my review**. Next: the team meeting, then send the questionnaire + the
-  mockup zip
+- **Chat 2 – Mockups & Questionnaires:** **six HTML mockup pages** (Compare and Admin in
+  two options, one menu) and a new zip for the team are ready; **one Word questionnaire**
+  (24 pages, Part 1 mockup + Part 2 requirements) is built — waiting for my review; it
+  covers only the Option 1 codes so far. Next: the team meeting, then send the
+  questionnaire + the mockup zip
 - **Open questions / blockers:** none (the old `data/sample/nbs_sample.csv` is deleted)
 
 ## Learning notes
